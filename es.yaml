@@ -29,18 +29,6 @@ spec:
               value: docker-cluster
             - name: discovery.type
               value: single-node
-#            - name: "ELASTICSEARCH_USERNAME"
-#              value: "elastic"
-#              valueFrom:
-#                secretKeyRef:
-#                  name: "elasticsearch-master-credentials"
-#                  key: "username"
-#            - name: "ELASTICSEARCH_PASSWORD"
-#              value: "random@321"
-#              valueFrom:
-#                secretKeyRef:
-#                  name: "elasticsearch-master-credentials"
-#                  key: "password"
             - name: xpack.security.enabled
               value: "false"
           image: docker.elastic.co/elasticsearch/elasticsearch:7.6.2
