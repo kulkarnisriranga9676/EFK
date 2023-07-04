@@ -1,5 +1,5 @@
 # EFK
-EFK Setup for Kubernets
+EFK Setup for Kubernetes
 Use the deployment files to install Elasticsearch and Kibana.
 use the fluentd deployment file with configmap which helps to customzie the fluentd config file like matching pattern, index name, formatting the logs, exluding the containers specific not to log and even namespace not to log
 
