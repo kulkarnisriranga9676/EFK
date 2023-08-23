@@ -13,20 +13,22 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    
+     
     env:
       EKS_CLUSTERNAME: ${{ github.event.inputs.choice == 'DEV' && 'dev-eks' || github.event.inputs.choice == 'STG' && 'staging-eks' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
         
-      - name: Display runs-on value
-        run: |
-          echo "runs-on value is ${{ github.run_on }}"
-
       - name: Set up environment
         run: echo "Setting up environment - ${{ github.event.inputs.choice }}"
+        
       - name : Read Cluster
         run: |
           echo "EKS_CLUSTERNAME is $EKS_CLUSTERNAME"
-     
-      # Add more steps for your build process as needed
+
+      - name: Print runner name
+        run: |
+          echo "Runner name is ${{ runner.name }}"
+    
