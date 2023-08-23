@@ -1,1 +1,11 @@
-#Sample
+name: 'TN Workflow dev'
+
+on:
+  workflow_dispatch
+  inputs:
+      choice:
+        type: choice
+        description: Choose a Environment
+        options:
+        - DEV
+        - STG
