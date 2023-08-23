@@ -5,17 +5,21 @@ on:
     inputs:
       environment:
         description: 'Choose an Environment'
+        required: true
         default: 'DEV'
         options:
           - DEV
           - STG
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up environment
-      run: echo "Setting up environment: ${{ github.event.inputs.environment }}"
+      - name: Set up environment
+        run: echo "Setting up environment - ${{ github.event.inputs.environment }}"
+
+      # Add more steps for your build process as needed
