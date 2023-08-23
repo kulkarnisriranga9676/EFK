@@ -19,6 +19,6 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Set up environment
-        run: echo "Setting up environment - ${{ github.event.inputs.environment }}"
+        run: echo "Setting up environment - ${{ github.event.inputs.choice }}"
 
       # Add more steps for your build process as needed
