@@ -14,7 +14,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      EKS_CLUSTERNAME: ${{ matrix.choice == 'DEV' && 'dev-eks' || matrix.choice == 'STG' && 'staging-eks' }}
+      EKS_CLUSTERNAME: ${{ if eq(matrix.choice, 'DEV') }}dev-eks${{ else }}staging-eks${{ endif }}
       
     steps:
       - name: Checkout code
@@ -23,6 +23,7 @@ jobs:
       - name: Set up environment
         run: echo "Setting up environment - ${{ github.event.inputs.choice }}"
       - name : Read Cluster
-        run: echo "$EKS_CLUSTERNAME"
+        run: |
+          echo "EKS_CLUSTERNAME is $EKS_CLUSTERNAME"
      
       # Add more steps for your build process as needed
