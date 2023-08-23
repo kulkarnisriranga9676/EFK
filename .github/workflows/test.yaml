@@ -1,11 +1,11 @@
 name: 'TN Workflow dev'
 
 on:
-  workflow_dispatch
-  inputs:
-      choice:
-        type: choice
-        description: Choose a Environment
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Choose an Environment'
+        default: 'DEV'
         options:
-        - DEV
-        - STG
+          - DEV
+          - STG
