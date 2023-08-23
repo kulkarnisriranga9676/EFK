@@ -21,7 +21,7 @@ jobs:
         
       - name: Display runs-on value
         run: |
-          echo "runs-on value is ${{ runner.os }}"
+          echo "runs-on value is ${{ github.run_on }}"
 
       - name: Set up environment
         run: echo "Setting up environment - ${{ github.event.inputs.choice }}"
