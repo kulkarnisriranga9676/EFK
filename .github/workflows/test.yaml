@@ -18,6 +18,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        
+      - name: Display runs-on value
+        run: |
+          echo "runs-on value is ${{ matrix.os }}"
 
       - name: Set up environment
         run: echo "Setting up environment - ${{ github.event.inputs.choice }}"
