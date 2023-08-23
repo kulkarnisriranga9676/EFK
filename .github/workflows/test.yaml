@@ -3,13 +3,12 @@ name: 'TN Workflow dev'
 on:
   workflow_dispatch:
     inputs:
-      environment:
-        description: 'Choose an Environment'
-        required: true
-        default: 'DEV'
+      choice:
+        type: choice
+        description: Choose a Environment
         options:
-          - DEV
-          - STG
+        - DEV
+        - STG
 
 jobs:
   build:
