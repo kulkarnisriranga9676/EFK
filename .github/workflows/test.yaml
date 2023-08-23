@@ -9,3 +9,13 @@ on:
         options:
           - DEV
           - STG
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up environment
+      run: echo "Setting up environment: ${{ github.event.inputs.environment }}"
