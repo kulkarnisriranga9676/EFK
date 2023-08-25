@@ -19,9 +19,17 @@ jobs:
       EKS_CLUSTERNAME: ${{ github.event.inputs.choice == 'DEV' && 'dev-eks' || github.event.inputs.choice == 'STG' && 'staging-eks' }}
       number: ${{ github.run_number }}
       # buildnumber: "${{ github.event.inputs.choice == 'DEV' && 'dev-' + github.run_number }} || github.event.inputs.choice == 'STG' && 'stg-' + github.run_number }}"
-      buildnumber: ${{ github.event.inputs.choice == 'DEV' && 'dev-' + github.run_number || github.event.inputs.choice == 'STG' && 'stg-' + github.run_number }}
-     
+      buildnumber: ${{ steps.set_buildnumber.outputs.buildnumber }}
     steps:
+      - name: Set build number
+        id: set_buildnumber
+        run: |
+          if [[ "${{ github.event.inputs.choice }}" == "DEV" ]]; then
+            echo "dev-${{ github.run_number }}" >> $GITHUB_ENV
+          else
+           echo "stg-${{ github.run_number }}" >> $GITHUB_ENV
+          fi
+      
       - name: Checkout code
         uses: actions/checkout@v2
         
