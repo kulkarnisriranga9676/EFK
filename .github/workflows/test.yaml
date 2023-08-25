@@ -17,7 +17,8 @@ jobs:
      
     env:
       EKS_CLUSTERNAME: ${{ github.event.inputs.choice == 'DEV' && 'dev-eks' || github.event.inputs.choice == 'STG' && 'staging-eks' }}
-      buildnumber: ${{ github.event.inputs.choice == 'DEV' && 'dev-'github.run_number || github.event.inputs.choice == 'STG' && 'stg-'github.run_number }}
+      number: ${{ github.run_number }}
+      buildnumber: ${{ github.event.inputs.choice == 'DEV' && 'dev-$number' || github.event.inputs.choice == 'STG' && 'stg-$number' }}
 
     steps:
       - name: Checkout code
