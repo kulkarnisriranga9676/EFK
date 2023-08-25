@@ -18,6 +18,7 @@ jobs:
     env:
       EKS_CLUSTERNAME: ${{ github.event.inputs.choice == 'DEV' && 'dev-eks' || github.event.inputs.choice == 'STG' && 'staging-eks' }}
       number: ${{ github.run_number }}
+      buildnumber: ${{ github.event.inputs.choice == 'DEV' && 'dev-$number', github.event.inputs.choice == 'STG' && 'stg-$number' }}
      
     steps:
       - name: Checkout code
@@ -35,6 +36,6 @@ jobs:
           echo "Runner name is ${{ runner.name }}"
       - name: Print Build Name
         run: |
-          echo "Runner name is $number"
+          echo "Runner name is $buildnumber"
           
     
