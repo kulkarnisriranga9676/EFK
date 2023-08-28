@@ -20,7 +20,7 @@ jobs:
       # number: ${{ github.run_number }}
       # buildnumber: "${{ github.event.inputs.choice == 'DEV' && 'dev-' + github.run_number }} || github.event.inputs.choice == 'STG' && 'stg-' + github.run_number }}"
       buildnumber: "${{ github.event.inputs.choice == 'DEV' && 'dev' || github.event.inputs.choice == 'STG' && 'staging'}}-${{github.run_number}}"
-      ASSUME_ROLE: ${{ github.event.inputs.choice == 'DEV' && 'arn:aws:iam::684878003660:role/skyhive-research-development-terrafrom-automation-role' || github.event.inputs.choice == 'STG' && 'arn:aws:iam::027795646707:role/skyhive-staging-qa-terraform-automation-role' || github.event.inputs.choice == 'UAT' && 'arn:aws:iam::027795646707:role/skyhive-staging-qa-terraform-automation-role' }}
+      ASSUME_ROLE: ${{ github.event.inputs.choice == 'DEV' && 'arn:aws:iam::123:role/research-development-terrafrom-automation-role' || github.event.inputs.choice == 'STG' && 'arn:aws:iam::789:role/staging-qa-terraform-automation-role' || github.event.inputs.choice == 'UAT' && 'arn:aws:iam::9999:role/staging-qa-terraform-automation-role' }}
     steps:
       
       - name: Checkout code
