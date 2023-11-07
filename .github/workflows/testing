@@ -1,0 +1,25 @@
+name: Conditioned Jobs
+
+on: [push]
+
+jobs:
+  job1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Condition
+        id: condition_check
+        run: echo ::set-output name=run_job::true  # Set the condition to run this job
+
+  job2:
+    runs-on: ubuntu-latest
+    if: ${{ steps.condition_check.outputs.run_job == 'true' }}
+    steps:
+      - name: Job 2
+        run: echo "This job will only run when the condition is true"
+
+  job3:
+    runs-on: ubuntu-latest
+    if: ${{ steps.condition_check.outputs.run_job == 'false' }}
+    steps:
+      - name: Job 3
+        run: echo "This job will only run when the condition is false"
