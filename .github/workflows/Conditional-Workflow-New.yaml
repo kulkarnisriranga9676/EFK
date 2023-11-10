@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       enable_job:
-        description: 'Ignore Deploy To QA & UAT'
+        description: 'RollBack'
         required: false
         default: 'false'
         type: boolean
-      additional_text: &additional_text
+      additional_text: 
         description: 'Additional Text'
         required: false
         type: string
@@ -17,6 +17,7 @@ on:
 jobs:
   Build:
     runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.enable_job == 'false' }}
     steps:
       - name: Conditional Job 1
         run: echo "This is Job 1"
@@ -24,7 +25,7 @@ jobs:
 
   Deploy-QA:
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.enable_job == 'false' }}
+    
     needs: Build
     steps:
       - name: Conditional Job 2
@@ -32,13 +33,14 @@ jobs:
 
   Deploy-UAT:
     runs-on: ubuntu-latest
+   
     needs: Deploy-QA
     steps:
       - name: Conditional Job 3
         run: echo "This is Job 3"
   Deploy-Prod:
     runs-on: ubuntu-latest
-    needs: Build
+    needs: Deploy-UAT
     steps:
       - name: Conditional Job 4
         run: echo "This is Job 4
