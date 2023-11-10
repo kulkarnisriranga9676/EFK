@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       enable_job:
-        description: 'Deploy QA & UAT'
+        description: 'Skip QA & UAT'
         required: false
         default: 'false'
         type: boolean
