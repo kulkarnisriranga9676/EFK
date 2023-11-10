@@ -8,10 +8,11 @@ on:
         required: false
         default: 'false'
         type: boolean
-      additional_text:
-        description: 'Additional Text (Optional)'
+      additional_text: &additional_text
+        description: 'Additional Text'
         required: false
         type: string
+        
 
 jobs:
   Build:
