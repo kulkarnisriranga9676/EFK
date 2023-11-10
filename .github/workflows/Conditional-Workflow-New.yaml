@@ -15,6 +15,13 @@ jobs:
     steps:
       - name: Conditional Job 1
         run: echo "This is Job 1"
+  Conditional-Message:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.enable_job == 'true' }}
+    needs: Build
+    steps:
+      - name: Print Message
+        run: echo "Workflow is enabled."
 
   Deploy-QA:
     runs-on: ubuntu-latest
