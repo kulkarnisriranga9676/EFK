@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       enable_job:
-        description: 'Enable Job 2'
+        description: 'Deploy QA & UAT'
         required: false
         default: 'false'
         type: boolean
@@ -26,6 +26,7 @@ jobs:
 
   Deploy-UAT:
     runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.enable_job == 'true' }}
     needs: Deploy-QA
     steps:
       - name: Conditional Job 3
