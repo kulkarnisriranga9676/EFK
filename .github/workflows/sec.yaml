@@ -5,8 +5,10 @@ on:
   
 jobs:
   job1:
+    env: 
+      key: ${{ secrets.QA_KEY }}
     runs-on: ubuntu-latest
     steps:
       - name: Conditional Job 1
-        run: echo ${{ secrets.QA_KEY }}
+        run: echo $key
       
