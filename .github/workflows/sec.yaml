@@ -9,8 +9,10 @@ jobs:
       mykey: ${{ secrets.QA_KEY }}
     runs-on: ubuntu-latest
     steps:
+      - name: Create File
+        run: touch key.txt
       - name: Conditional Job 1
-        run: cat $mykey > key.txt
+        run: echo $mykey > key.txt
       - name: writing
         run: cat key.txt
       
