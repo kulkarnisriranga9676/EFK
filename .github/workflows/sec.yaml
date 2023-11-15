@@ -1,4 +1,4 @@
-name: Conditional Workflow
+name: Sec
 
 on:
   workflow_dispatch:
