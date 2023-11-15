@@ -6,9 +6,11 @@ on:
 jobs:
   job1:
     env: 
-      key: ${{ secrets.QA_KEY }}
+      mykey: ${{ secrets.QA_KEY }}
     runs-on: ubuntu-latest
     steps:
       - name: Conditional Job 1
-        run: echo $key
+        run: cat $mykey > key.txt
+      - name: writing
+        run: cat key.txt
       
