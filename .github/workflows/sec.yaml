@@ -8,5 +8,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Conditional Job 1
-        run: echo ${{ secrets.QA_INSTRUMENTATIONKEY }}
+        run: echo ${{ secrets.QA_KEY }}
       
