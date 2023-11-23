@@ -14,3 +14,7 @@ add container names or namespace in the below pattern to add to exclude list
       exclude_path ["/var/log/containers/*_testing_*-*.log] for reference {"/var/log/containers/*_testing_*-*.log}
 
 kubectl rollout restart daemonset <> -n namespace
+
+
+
+asd
