@@ -10,4 +10,4 @@ jobs:
         run: echo "This is Job 1"
         
       - name: Sleep for 10 seconds
-        run: sleep 10
+        run: sleep 100
