@@ -1,0 +1,11 @@
+name: Conditional Workflow New
+
+on:
+  workflow_dispatch:
+jobs:
+  Build:
+    runs-on: self-container-runner
+    steps:
+      - name: Conditional Job 1
+        run: echo "This is Job 1"
+  
