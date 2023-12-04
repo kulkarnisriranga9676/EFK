@@ -6,7 +6,10 @@ on:
 jobs:
   Build:
     runs-on: self-container-runner
-    # runs-on: ubuntu-latest
+    container:
+      image: sanderknape/github-runner:latest
+      options: --name my-pod-$(date +%s) 
+   
     steps:
       - name: Conditional Job 2
         run: echo "This is Job 2"
