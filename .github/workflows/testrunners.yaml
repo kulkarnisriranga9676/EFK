@@ -4,11 +4,7 @@ on:
   workflow_dispatch:
 jobs:
   Build:
-    runs-on: self-container-runner
-    container:
-      image: sanderknape/github-runner:latest
-      options: --name my-pod-$(date +%s) 
-   
+    runs-on: sanderknape/github-runner:latest
     steps:
       - name: Conditional Job 1
         run: echo "This is Job 1"
