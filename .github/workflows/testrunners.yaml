@@ -1,4 +1,4 @@
-name: Conditional Workflow New
+name: Runners Test
 
 on:
   workflow_dispatch:
