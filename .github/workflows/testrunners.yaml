@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 jobs:
   Build:
-    runs-on: self-container-runner
+    runs-on: arc-runner-set
     steps:
       - name: Conditional Job 1
         run: echo "This is Job 1"
