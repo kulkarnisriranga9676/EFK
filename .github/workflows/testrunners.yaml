@@ -8,4 +8,6 @@ jobs:
     steps:
       - name: Conditional Job 1
         run: echo "This is Job 1"
-  
+        
+      - name: Sleep for 10 seconds
+        run: sleep 10
