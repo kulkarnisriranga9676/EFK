@@ -5,8 +5,8 @@ on:
 
 jobs:
   Build:
-    # runs-on: self-container-runner
-    runs-on: ubuntu-latest
+    runs-on: self-container-runner
+    # runs-on: ubuntu-latest
     steps:
       - name: Conditional Job 2
         run: echo "This is Job 2"
