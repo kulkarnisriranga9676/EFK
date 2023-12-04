@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 jobs:
   Build:
-    runs-on: sanderknape/github-runner:latest
+    runs-on: self-container-runner
     steps:
       - name: Conditional Job 1
         run: echo "This is Job 1"
