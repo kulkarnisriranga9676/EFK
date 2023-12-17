@@ -29,6 +29,7 @@ jobs:
 
   approval:
     runs-on: ubuntu-latest
+    environment: Sample
     needs: job3
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     steps:
