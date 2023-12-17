@@ -8,24 +8,24 @@ jobs:
     runs-on: ubuntu-latest
     environment: Sample
     steps:
-      - name: Fetch Workflow Run Details
-        id: workflow_run_details
-        uses: actions/github-script@v4
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const { owner, repo } = context.repo;
-            const workflowRunId = context.payload.workflow_run.id;
-            const response = await github.actions.getWorkflowRun({
-              owner,
-              repo,
-              run_id: workflowRunId
-            });
+      # - name: Fetch Workflow Run Details
+      #   id: workflow_run_details
+      #   uses: actions/github-script@v4
+      #   with:
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     script: |
+      #       const { owner, repo } = context.repo;
+      #       const workflowRunId = context.payload.workflow_run.id;
+      #       const response = await github.actions.getWorkflowRun({
+      #         owner,
+      #         repo,
+      #         run_id: workflowRunId
+      #       });
 
-            console.log(response.data.run_number);
+      #       console.log(response.data.run_number);
 
-            // Store required details in outputs
-            console.log(`::set-output name=run_number::${response.data.run_number}`);
+      #       // Store required details in outputs
+      #       console.log(`::set-output name=run_number::${response.data.run_number}`);
 
       - name: Fetch Workflow Run Comments
         id: workflow_run_comments
