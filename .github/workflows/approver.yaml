@@ -22,33 +22,26 @@ jobs:
     steps:
       - name: Job 3
         run: echo "This is job 3"
-
-  approval:
+approval:
     runs-on: ubuntu-latest
     needs: job3
+    if: github.event_name == 'workflow_dispatch'
     steps:
-      - name: Manual approval
-        id: approve
-        uses: actions/github-script@v4
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const { data: pullRequest } = await github.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
-            });
-            const approved = await github.pulls.createReview({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
-              event: 'APPROVE',
-              body: 'Ready for deployment. Please provide the necessary variable as a comment.',
-            });
-
-      - name: Wait for approval input
-        if: steps.approve.outcome == 'success'
+      - name: Get Pull Request Number
+        id: pr_number
+        run: echo "PR_NUMBER=${{ github.event.client_payload.pull_request_number }}" >> $GITHUB_ENV
+      
+      - name: Input variable
+        id: input_var
         run: |
-          # Logic to wait for approval and extract the variable from the comment
-          # For example, using GitHub API to fetch the comment and extract the variable information
-          # Handle the selected variable here
+          echo "Please input the necessary variable."
+          echo "::set-output name=variable::${{ github.event.inputs.variable }}"
+      
+      - name: Perform action with selected variable
+        run: |
+          pr_number=${{ env.PR_NUMBER }}
+          selected_variable=${{ steps.input_var.outputs.variable }}
+          
+          # Use the selected_variable and pr_number in your workflow
+          echo "Selected variable: $selected_variable for PR: $pr_number"
+          # Perform actions based on the selected variable
