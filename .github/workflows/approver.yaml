@@ -15,11 +15,11 @@ jobs:
       needs: job1
       runs-on: ubuntu-latest
       env:
-            ENV_VERSION: ${{ secrets.Sample_VERSION }}
+        ENV_VERSION: ${{ secrets.Sample_VERSION }}
       steps:
         - name: Print Version from Sample Environment
-              run: |
-                echo "Version: $ENV_VERSION"
+          run: |
+            echo "Version: $ENV_VERSION"
         # - name: Check for keyword
         #   run: |
         #     keyword=${{ github.event.inputs.keyword }}
