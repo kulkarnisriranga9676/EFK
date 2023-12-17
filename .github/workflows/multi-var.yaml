@@ -9,7 +9,7 @@ on:
         description: "Versions"
         default: 'v2'
         required: true
-        type: string
+        type: choice
         options:
           - 'normal'
           - 'v1'
