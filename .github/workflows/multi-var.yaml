@@ -1,6 +1,7 @@
 # Unified File
 name: 'Facadeapi Unified Deployment '
 run-name: Deploying  ${{github.ref_name}} Tag to ${{ github.event.inputs.choice }} Environment
+
 on:
   workflow_dispatch:
     inputs:
@@ -8,7 +9,7 @@ on:
         description: "Versions"
         default: 'v2'
         required: true
-        type: choice
+        type: string
         options:
           - 'normal'
           - 'v1'
@@ -19,8 +20,7 @@ on:
         description: "Environments"
         default: 'QA'
         required: true
-        type: choice
-        description: Choose an Environment
+        type: string
         options:
           - 'qa'
           - 'stage'
