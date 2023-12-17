@@ -17,16 +17,16 @@ on:
           - 'pro'
           - 'consumers'
 
-      environment:
-        description: "Environments"
-        default: 'QA'
-        required: true
-        type: choice
-        description: Choose a Environment
-        options:
-        - 'qa'
-        - 'stage'
-        - 'production'
+      # environment:
+      #   description: "Environments"
+      #   default: 'QA'
+      #   required: true
+      #   type: choice
+      #   description: Choose a Environment
+      #   options:
+      #   - 'qa'
+      #   - 'stage'
+      #   - 'production'
 
       # Tag:
       #   description: 'Choose the Tag (Ex: qa-123)'
