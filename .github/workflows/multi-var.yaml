@@ -18,16 +18,16 @@ on:
           - 'v2'
           - 'pro'
           - 'consumers'
-      # environment:
-      #   description: "Environments"
-      #   default: 'QA'
-      #   required: true
-      #   type: choice
-      #   description: Choose a Environment
-      #   options:
-      #   - QA
-      #   - UAT
-      #   - PROD
+      environment:
+        description: "Environments"
+        default: 'QA'
+        required: true
+        type: choice
+        description: Choose a Environment
+        options:
+        - QA
+        - UAT
+        - PROD
       # Tag: 
       #   description: 'Tag [ Ex: QA-123 ]'
       #   required: false
@@ -35,6 +35,7 @@ on:
         
 jobs:
   Facade-Deploy:
+    runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.version }}
     name: 'Build and Deploy to ${{ github.event.inputs.version }}'
     steps:
