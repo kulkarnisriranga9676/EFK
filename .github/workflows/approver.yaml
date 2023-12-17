@@ -1,13 +1,10 @@
 name: Full Approval Workflow
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
-    inputs:
-      variable:
-        description: 'Enter the necessary variable'
-        required: true
-  pull_request:
-    types: [review_requested, review_request_removed, submitted, dismissed]
 
 jobs:
   job1:
@@ -33,20 +30,14 @@ jobs:
   approval:
     runs-on: ubuntu-latest
     needs: job3
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action == 'submitted' && github.event.review.state == 'approved')
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     steps:
-      - name: Collect variable for approval
-        id: collect_variable
-        if: github.event_name == 'workflow_dispatch'
+      - name: Trigger Status Check
         run: |
-          echo "Please enter the necessary variable:"
-          echo "::set-output name=variable::$user_input"
+          echo "Pending approval..."
+          # Perform necessary steps, such as waiting for an approval
 
-      - name: Perform action with selected variable
+      - name: Perform action after approval
         run: |
-          selected_variable=${{ github.event.inputs.variable }} # For workflow_dispatch
-          selected_variable=${{ steps.collect_variable.outputs.variable }} # For PR review approval
-          
-          # Use the selected_variable in your workflow
-          echo "Selected variable: $selected_variable"
-          # Perform actions based on the selected variable
+          # Perform actions after the approval check
+          echo "Approval obtained, performing actions..."
