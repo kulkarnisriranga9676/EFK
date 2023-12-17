@@ -7,13 +7,11 @@ on:
         description: 'Choose the version (normal, v1, v2, pro)'
         required: true
         default: 'normal'
-        # Add other versions as options if needed: options: ['normal', 'v1', 'v2', 'pro']
 
       environment:
         description: 'Choose the environment (dev, qa, uat, prod)'
         required: true
         default: 'dev'
-        # Add other environments as options if needed: options: ['dev', 'qa', 'uat', 'prod']
 
 jobs:
   deploy:
@@ -25,7 +23,16 @@ jobs:
 
       - name: Deploy Service
         run: |
-          # Depending on the selected version and environment, perform the deployment
-          echo "Deploying version '${{ github.event.inputs.version }}' to '${{ github.event.inputs.environment }}'"
-          # Add your deployment commands here based on the chosen version and environment
-          # Example: deploy-service --version ${{ github.event.inputs.version }} --environment ${{ github.event.inputs.environment }}
+          if [ "${{ github.event.inputs.version }}" = "normal" ] && [ "${{ github.event.inputs.environment }}" = "dev" ]; then
+            # Deploy 'normal' version to 'dev' environment
+            echo "Deploying version 'normal' to 'dev' environment"
+            # Add deployment commands for 'normal' version to 'dev' environment
+            # Example: deploy-normal-to-dev
+          elif [ "${{ github.event.inputs.version }}" = "v2" ] && [ "${{ github.event.inputs.environment }}" = "prod" ]; then
+            # Deploy 'v2' version to 'prod' environment
+            echo "Deploying version 'v2' to 'prod' environment"
+            # Add deployment commands for 'v2' version to 'prod' environment
+            # Example: deploy-v2-to-prod
+          else
+            echo "No specific deployment action defined for the selected version and environment."
+          fi
