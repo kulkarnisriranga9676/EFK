@@ -18,16 +18,15 @@ on:
           - 'v2'
           - 'pro'
           - 'consumers'
-      # environment:
-      #   description: "Environments"
-      #   default: 'QA'
-      #   required: true
-      #   type: choice
-      #   description: Choose a Environment
-      #   options:
-      #   - QA
-      #   - UAT
-      #   - PROD
+      environment:
+        description: "Environment"
+        default: 'QA'
+        required: true
+        type: choice
+        options:
+          - 'QA'
+          - 'UAT'
+          - 'PROD'
       # Tag: 
       #   description: 'Tag [ Ex: QA-123 ]'
       #   required: false
