@@ -1,10 +1,7 @@
 name: Multi Deploy Services
 
 on:
-  push:
-    branches:
-      - main  # Modify this branch according to your requirements
-
+  workflow_dispatch
 jobs:
   deploy:
     runs-on: ubuntu-latest
