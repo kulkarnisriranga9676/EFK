@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  job1:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Job 1
-        run: echo "This is job 1"
+  # job1:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Job 1
+  #       run: echo "This is job 1"
   approval:
       if: github.event_name == 'workflow_dispatch'
       environment: Sample
