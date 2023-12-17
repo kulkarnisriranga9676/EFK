@@ -32,6 +32,6 @@ on:
         type: string
         
 jobs:
-  ${{ github.event.inputs.environment }}:
+  Facade-Deploy:
     env: ${{ github.event.inputs.environment }}
     name: 'Build and Deploy to ${{ github.event.inputs.environment }}'
