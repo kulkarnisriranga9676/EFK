@@ -2,10 +2,6 @@ name: Approval Workflow
 
 on:
   workflow_dispatch:
-    inputs:
-      variable:
-        description: 'Enter the necessary variable'
-        required: true
 
 jobs:
   job1:
@@ -35,8 +31,9 @@ jobs:
     steps:
       - name: Collect variable for approval
         run: |
-          read -p "Enter the necessary variable: " user_input
-          echo "::set-output name=variable::${user_input}"
+          echo "Please enter the necessary variable:"
+          read user_input
+          echo "::set-output name=variable::$user_input"
 
       - name: Perform action with selected variable
         run: |
