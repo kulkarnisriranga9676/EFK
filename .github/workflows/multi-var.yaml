@@ -2,8 +2,6 @@
 name: 'Facadeapi Unified Deployment '
 run-name: Deploying  ${{github.ref_name}} Tag to ${{ github.event.inputs.choice }} Environment
 
-
-
 on:
   workflow_dispatch:
     inputs:
@@ -18,22 +16,26 @@ on:
           - 'v2'
           - 'pro'
           - 'consumers'
+
       environment:
-        description: "Environment"
+        description: "Environments"
         default: 'QA'
         required: true
         type: choice
+        description: Choose a Environment
         options:
-          - 'QA'
-          - 'UAT'
-          - 'PROD'
+        - 'qa'
+        - 'stage'
+        - 'production'
+
       Tag:
-        description: "Tag"
+        description: 'Choose the Tag (Ex: qa-123)'
+        required: true
         type: string
       
 jobs:
   Facade-Deploy:
-    name: 'Deploying to ${{ github.event.inputs.Tag }} to ${{ github.event.inputs.environment }} Env'
+    name: 'Deploying  ${{ github.event.inputs.Tag }} Tag to ${{ github.event.inputs.environment }} Env'
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.version }}
     steps:
@@ -45,4 +47,4 @@ jobs:
           echo "Environment Selected : ${{ github.event.inputs.environment }}"
       - name: Running Tag Command
         run: |
-          echo "Environment Selected : ${{ github.event.inputs.Tag }}"
+          echo "Tag Selected : ${{ github.event.inputs.Tag }}"
