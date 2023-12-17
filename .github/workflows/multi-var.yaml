@@ -28,10 +28,10 @@ on:
         - 'stage'
         - 'production'
 
-      Tag:
-        description: 'Choose the Tag (Ex: qa-123)'
-        required: true
-        type: string
+      # Tag:
+      #   description: 'Choose the Tag (Ex: qa-123)'
+      #   required: true
+      #   type: string
       
 jobs:
   Facade-Deploy:
