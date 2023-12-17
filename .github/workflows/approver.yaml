@@ -25,23 +25,13 @@ jobs:
 
 approval:
     runs-on: ubuntu-latest
+    needs: job3
     if: github.event_name == 'workflow_dispatch'
     steps:
-      - name: Get Pull Request Number
-        id: pr_number
-        run: echo "PR_NUMBER=${{ github.event.client_payload.pull_request_number }}" >> $GITHUB_ENV
-      
-      - name: Input variable
-        id: input_var
-        run: |
-          echo "Please input the necessary variable."
-          echo "::set-output name=variable::${{ github.event.inputs.variable }}"
-      
       - name: Perform action with selected variable
         run: |
-          pr_number=${{ env.PR_NUMBER }}
-          selected_variable=${{ steps.input_var.outputs.variable }}
+          selected_variable=${{ github.event.inputs.variable }}
           
-          # Use the selected_variable and pr_number in your workflow
-          echo "Selected variable: $selected_variable for PR: $pr_number"
+          # Use the selected_variable in your workflow
+          echo "Selected variable: $selected_variable"
           # Perform actions based on the selected variable
