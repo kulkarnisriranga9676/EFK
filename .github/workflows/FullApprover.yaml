@@ -9,7 +9,7 @@ on:
 jobs:
   fetch_comments:
     runs-on: ubuntu-latest
-    encironment: Sample
+    environment: Sample
     steps:
       - name: Fetch Workflow Run Details
         id: workflow_run_details
