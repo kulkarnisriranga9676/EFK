@@ -37,7 +37,7 @@ jobs:
 
         - name: Print Review Comments
           run: |
-            echo "Version: ${{ secrets.Sample_Version }}"
+            echo "Version: ${{ secrets.VERSION }}"
             # comments="${{ steps.comments.outputs.data }}"
             # echo "Reviewer Comments:"
             # echo "$comments"
