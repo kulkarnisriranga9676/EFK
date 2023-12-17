@@ -33,5 +33,9 @@ on:
         
 jobs:
   Facade-Deploy:
-    env: ${{ github.event.inputs.environment }}
+    environment: ${{ github.event.inputs.environment }}
     name: 'Build and Deploy to ${{ github.event.inputs.environment }}'
+    steps:
+      - name: Running Command
+        run: |
+          echo "${{ github.event.inputs.environment }}"
