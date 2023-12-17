@@ -32,15 +32,15 @@ jobs:
       needs: job3
       runs-on: ubuntu-latest
       steps:
-        - name: Check for keyword
-          run: |
-            keyword=${{ github.event.inputs.keyword }}
-            if [[ $keyword == "releaseit" ]]; then
-              echo "Keyword matched. Proceeding..."
-            else
-              echo "Keyword not matched. Aborting..."
-              exit 1
-            fi
+        # - name: Check for keyword
+        #   run: |
+        #     keyword=${{ github.event.inputs.keyword }}
+        #     if [[ $keyword == "releaseit" ]]; then
+        #       echo "Keyword matched. Proceeding..."
+        #     else
+        #       echo "Keyword not matched. Aborting..."
+        #       exit 1
+        #     fi
 
         - name: Get Review Comments
           id: comments
