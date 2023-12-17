@@ -5,11 +5,29 @@ on:
 
 jobs:
   approval:
-    if: github.event_name == 'workflow_dispatch'
+    # if: github.event_name == 'workflow_dispatch'
+    # if: github.event.review.state == 'approved' && matrix.environment == 'Sample'
     environment: Sample
     runs-on: ubuntu-latest
-    
+    # steps:
+    #   - name: Print Version from Sample Environment
+    #     run: |
+    #       echo "VERSION: ${{ vars.VERSION }}"
     steps:
-      - name: Print Version from Sample Environment
+      - name: Get Issue Comments
+        id: get_comments
         run: |
-          echo "VERSION: ${{ vars.VERSION }}"
+          COMMENTS=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/issues/${{ inputs.issue_number }}/comments")
+          echo "::set-output name=comments::$(echo $COMMENTS)"
+
+      - name: Find Approval Comment
+        id: find_approval_comment
+        run: |
+          # Parse comments to find the specific approval comment format
+          # Example: Use jq or other tools to parse JSON
+
+      - name: Use Approval Comment
+        if: steps.find_approval_comment.outputs.comment != ''
+        run: |
+          echo "The approval comment is: ${{ steps.find_approval_comment.outputs.comment }}"
