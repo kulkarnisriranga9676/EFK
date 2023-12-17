@@ -1,4 +1,4 @@
-name: Dynamic Inputs Workflow
+name: Parameters  
 
 on:
   workflow_dispatch:
