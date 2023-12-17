@@ -26,8 +26,4 @@ on:
         - QA
         - UAT
         - PROD
-      Tag:
-        description: 'Choose the Tag (Ex: qa-123)'
-        required: true
-
-
+   
