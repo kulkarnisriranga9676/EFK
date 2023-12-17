@@ -27,33 +27,33 @@ jobs:
       - name: Job 3
         run: echo "This is job 3"
 
-approval:
-    if: github.event_name == 'workflow_dispatch'
-    needs: job3
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check for keyword
-        run: |
-          keyword=${{ github.event.inputs.keyword }}
-          if [[ $keyword == "releaseit" ]]; then
-            echo "Keyword matched. Proceeding..."
-          else
-            echo "Keyword not matched. Aborting..."
-            exit 1
-          fi
+  approval:
+      if: github.event_name == 'workflow_dispatch'
+      needs: job3
+      runs-on: ubuntu-latest
+      steps:
+        - name: Check for keyword
+          run: |
+            keyword=${{ github.event.inputs.keyword }}
+            if [[ $keyword == "releaseit" ]]; then
+              echo "Keyword matched. Proceeding..."
+            else
+              echo "Keyword not matched. Aborting..."
+              exit 1
+            fi
 
-      - name: Get Review Comments
-        id: comments
-        uses: octokit/request-action@v2.x
-        with:
-          route: GET /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews
-          headers: |
-            Authorization: Bearer ${{ secrets.PAT }} # Replace with your Personal Access Token (PAT)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        - name: Get Review Comments
+          id: comments
+          uses: octokit/request-action@v2.x
+          with:
+            route: GET /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews
+            headers: |
+              Authorization: Bearer ${{ secrets.PAT }} # Replace with your Personal Access Token (PAT)
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Print Review Comments
-        run: |
-          comments="${{ steps.comments.outputs.data }}"
-          echo "Reviewer Comments:"
-          echo "$comments"
+        - name: Print Review Comments
+          run: |
+            comments="${{ steps.comments.outputs.data }}"
+            echo "Reviewer Comments:"
+            echo "$comments"
