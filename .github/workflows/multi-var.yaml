@@ -16,15 +16,15 @@ on:
           - 'v2'
           - 'pro'
           - 'consumers'
-      Target:
-        description: "Environments"
-        default: 'QA'
-        required: true
-        type: string
-        options:
-          - 'qa'
-          - 'stage'
-          - 'production'
+      # Target:
+      #   description: "Environments"
+      #   default: 'QA'
+      #   required: true
+      #   type: string
+      #   options:
+      #     - 'qa'
+      #     - 'stage'
+      #     - 'production'
 
       # environment:
       #   description: "Environments"
@@ -53,7 +53,7 @@ jobs:
           echo "Version Selected : ${{ github.event.inputs.version }}"
       - name: Running Environment Command
         run: |
-          echo "Environment Selected : ${{ github.event.inputs.environment }}"
+          echo "Environment Selected : ${{ github.event.inputs.Target }}"
       - name: Running Tag Command
         run: |
           echo "Tag Selected : ${{ github.event.inputs.Tag }}"
