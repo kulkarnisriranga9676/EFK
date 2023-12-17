@@ -25,18 +25,19 @@ jobs:
         #       exit 1
         #     fi
 
-        - name: Get Review Comments
-          id: comments
-          uses: octokit/request-action@v2.x
-          with:
-            route: GET /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews
-            headers: |
-              Authorization: Bearer ${{ secrets.PAT }} # Replace with your Personal Access Token (PAT)
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # - name: Get Review Comments
+        #   id: comments
+        #   uses: octokit/request-action@v2.x
+        #   with:
+        #     route: GET /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews
+        #     headers: |
+        #       Authorization: Bearer ${{ secrets.PAT }} # Replace with your Personal Access Token (PAT)
+        #   env:
+        #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
         - name: Print Review Comments
           run: |
-            comments="${{ steps.comments.outputs.data }}"
-            echo "Reviewer Comments:"
-            echo "$comments"
+            echo "Version: ${{ secrets.Sample_Version }}"
+            # comments="${{ steps.comments.outputs.data }}"
+            # echo "Reviewer Comments:"
+            # echo "$comments"
