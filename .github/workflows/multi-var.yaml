@@ -1,0 +1,41 @@
+name: Multi Deploy Services
+
+on:
+  push:
+    branches:
+      - main  # Modify this branch according to your requirements
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        version: [normal, v1, v2, pro]
+        environment: [dev, qa, uat, prod]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Deploy Service
+        run: |
+          # Depending on the service, deploy it to the selected environment
+          if [ "${{ matrix.version }}" = "normal" ]; then
+            # Deploy service 'A' to the selected environment
+            # Use environment variables to configure the deployment parameters
+            # Example: deploy-service-A --environment ${{ matrix.environment }} --param1 value1 --param2 value2
+            echo "Deploying service 'A' version 'normal' to ${{ matrix.environment }}"
+          elif [ "${{ matrix.version }}" = "v1" ]; then
+            # Deploy service 'B' to the selected environment
+            # Example: deploy-service-B --environment ${{ matrix.environment }} --param1 value1 --param2 value2
+            echo "Deploying service 'B' version 'v1' to ${{ matrix.environment }}"
+          elif [ "${{ matrix.version }}" = "v2" ]; then
+            # Deploy service 'C' to the selected environment
+            # Example: deploy-service-C --environment ${{ matrix.environment }} --param1 value1 --param2 value2
+            echo "Deploying service 'C' version 'v2' to ${{ matrix.environment }}"
+          elif [ "${{ matrix.version }}" = "pro" ]; then
+            # Deploy service 'D' to the selected environment
+            # Example: deploy-service-D --environment ${{ matrix.environment }} --param1 value1 --param2 value2
+            echo "Deploying service 'D' version 'pro' to ${{ matrix.environment }}"
+          fi
