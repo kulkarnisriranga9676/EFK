@@ -1,38 +1,33 @@
-name: Manual Deployment
+# Unified File
+name: 'Facadeapi Unified Deployment '
+run-name: Deploying  ${{github.ref_name}} Tag to ${{ github.event.inputs.choice }} Environment
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Choose the version (normal, v1, v2, pro)'
+        description: "Versions"
+        default: 'v2'
         required: true
-        default: 'normal'
-
-      environment:
-        description: 'Choose the environment (dev, qa, uat, prod)'
+        type: choice
+        options:
+          - 'normal'
+          - 'v1'
+          - 'v2'
+          - 'pro'
+          - 'consumers'
+      choice:
+        description: "Environments"
+        default: 'QA'
         required: true
-        default: 'dev'
+        type: choice
+        description: Choose a Environment
+        options:
+        - QA
+        - UAT
+        - PROD
+      Tag:
+        description: 'Choose the Tag (Ex: qa-123)'
+        required: true
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Deploy Service
-        run: |
-          if [ "${{ github.event.inputs.version }}" = "normal" ] && [ "${{ github.event.inputs.environment }}" = "dev" ]; then
-            # Deploy 'normal' version to 'dev' environment
-            echo "Deploying version 'normal' to 'dev' environment"
-            # Add deployment commands for 'normal' version to 'dev' environment
-            # Example: deploy-normal-to-dev
-          elif [ "${{ github.event.inputs.version }}" = "v2" ] && [ "${{ github.event.inputs.environment }}" = "prod" ]; then
-            # Deploy 'v2' version to 'prod' environment
-            echo "Deploying version 'v2' to 'prod' environment"
-            # Add deployment commands for 'v2' version to 'prod' environment
-            # Example: deploy-v2-to-prod
-          else
-            echo "No specific deployment action defined for the selected version and environment."
-          fi
