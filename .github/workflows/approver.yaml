@@ -30,14 +30,17 @@ jobs:
 
   approval:
     runs-on: ubuntu-latest
+    needs: job3
     if: github.event_name == 'workflow_dispatch'
     steps:
-      - name: Set up Git
-        uses: actions/checkout@v2
+      - name: Collect variable for approval
+        run: |
+          read -p "Enter the necessary variable: " user_input
+          echo "::set-output name=variable::${user_input}"
 
       - name: Perform action with selected variable
         run: |
-          selected_variable=${{ github.event.inputs.variable }}
+          selected_variable=${{ steps.approval.outputs.variable }}
           
           # Use the selected_variable in your workflow
           echo "Selected variable: $selected_variable"
