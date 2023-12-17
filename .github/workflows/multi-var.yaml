@@ -40,4 +40,7 @@ jobs:
     steps:
       - name: Running Command
         run: |
-          echo "${{ github.event.inputs.version }}"
+          echo "Version Selected : ${{ github.event.inputs.version }}"
+      - name: Running Command
+        run: |
+          echo "Environment Selected : ${{ github.event.inputs.environment }}"
