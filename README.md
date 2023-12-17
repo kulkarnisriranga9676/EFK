@@ -18,3 +18,4 @@ kubectl rollout restart daemonset <> -n namespace
 
 
 asd
+asd
