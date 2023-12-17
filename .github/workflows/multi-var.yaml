@@ -16,7 +16,7 @@ on:
           - 'v2'
           - 'pro'
           - 'consumers'
-      Target:
+      environment:
         description: "Environments"
         default: 'QA'
         required: true
@@ -62,7 +62,7 @@ jobs:
           echo "Version Selected : ${{ github.event.inputs.version }}"
       - name: Running Environment Command
         run: |
-          echo "Environment Selected : ${{ github.event.inputs.Target }}"
+          echo "Environment Selected : ${{ github.event.inputs.environment }}"
       - name: Running Tag Command
         run: |
           echo "Tag Selected : ${{ github.event.inputs.Tag }}"
