@@ -12,4 +12,4 @@ jobs:
     steps:
       - name: Print Version from Sample Environment
         run: |
-          env
+          echo "VERSION: ${{ secrets.VERSION }}"
