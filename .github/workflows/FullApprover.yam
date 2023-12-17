@@ -9,6 +9,7 @@ on:
 
 jobs:
   review_environment:
+    environment: Sample
     runs-on: ubuntu-latest
     steps:
       - name: Get Issue Comments
