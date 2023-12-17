@@ -16,6 +16,15 @@ on:
           - 'v2'
           - 'pro'
           - 'consumers'
+      Target:
+        description: "Environments"
+        default: 'QA'
+        required: true
+        type: choice
+        options:
+          - 'qa'
+          - 'stage'
+          - 'production'
       # Target:
       #   description: "Environments"
       #   default: 'QA'
