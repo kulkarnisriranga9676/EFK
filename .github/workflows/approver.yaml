@@ -8,8 +8,6 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     environment: Sample
     runs-on: ubuntu-latest
-    env:
-      ENV_VERSION: ${{ secrets.Sample_VERSION }}
     steps:
       - name: Print Version from Sample Environment
         run: |
