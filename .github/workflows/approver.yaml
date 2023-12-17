@@ -8,7 +8,9 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     environment: Sample
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Print Version from Sample Environment
-        run: |
-          echo "VERSION: $VERSION"
+      - name: Debug Environment Variables
+         run: |
+          env
+
