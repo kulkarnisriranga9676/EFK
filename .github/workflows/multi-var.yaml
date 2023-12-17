@@ -26,4 +26,9 @@ on:
         - QA
         - UAT
         - PROD
+      Tag: 
+        description: 'Tag [ Ex: QA-123 ]'
+        required: false
+        type: string
+        
    
