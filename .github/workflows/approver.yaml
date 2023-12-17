@@ -36,17 +36,16 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action == 'submitted' && github.event.review.state == 'approved')
     steps:
       - name: Collect variable for approval
+        id: collect_variable
         if: github.event_name == 'workflow_dispatch'
         run: |
           echo "Please enter the necessary variable:"
           echo "::set-output name=variable::$user_input"
-        else:
-          echo "Approved via PR review."
 
       - name: Perform action with selected variable
         run: |
           selected_variable=${{ github.event.inputs.variable }} # For workflow_dispatch
-          selected_variable=${{ steps.approval.outputs.variable }} # For PR review approval
+          selected_variable=${{ steps.collect_variable.outputs.variable }} # For PR review approval
           
           # Use the selected_variable in your workflow
           echo "Selected variable: $selected_variable"
