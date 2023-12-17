@@ -1,41 +1,35 @@
-name: Parameters  
+name: Parameters
 
 on:
   workflow_dispatch:
     inputs:
-      file_path:
-        description: 'Path to the file with options'
-        required: false
-        default: 'repo.txt' # Default file path if not provided during manual dispatch
+      choice:
+        description: 'Select an option'
+        required: true
+        default: 'choice1'
+        # You can update the default value to any value from repo.txt
 
 jobs:
-  dynamic_inputs:
+  run_job:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Read options from file
-        id: read-options
+      - name: Read choices from repo.txt
         run: |
-          FILE_PATH=${{ github.event.inputs.file_path }}
-          OPTIONS=$(<"$FILE_PATH")
-          echo "::set-output name=options::$OPTIONS"
+          choices=$(cat repo.txt)
+          echo "::set-output name=choices::$choices"
 
-      - name: Choose input dynamically
-        id: choose-input
+      - name: Extract choice options
+        id: extract_choices
         run: |
-          OPTIONS_ARRAY=(${{ steps.read-options.outputs.options }})
-          for option in "${OPTIONS_ARRAY[@]}"; do
-            echo "::add-mask::$option" # Mask the options if sensitive
-            echo "Available option: $option"
-            # Use the options to perform actions or set dynamic inputs
-            # For example, set environment variables or inputs for subsequent steps
-            echo "INPUT_OPTION=$option" >> $GITHUB_ENV
+          choices="$INPUT_CHOICE"
+          echo "Choices: $choices"
+          choices_array=($choices)
+          for choice in "${choices_array[@]}"; do
+            echo "::set-output name=choice::$choice"
           done
 
-      # Use the dynamically chosen input in subsequent steps
-      - name: Next Step
+      - name: Run based on choice
         run: |
-          echo "Using dynamically chosen input: $INPUT_OPTION"
-          # Perform actions using the dynamically chosen input
+          selected_choice="${{ steps.extract_choices.outputs.choice }}"
+          echo "Selected choice: $selected_choice"
+          # Perform actions based on the selected_choice
