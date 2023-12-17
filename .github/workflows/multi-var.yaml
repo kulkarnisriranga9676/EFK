@@ -34,4 +34,4 @@ on:
 jobs:
   ${{ github.event.inputs.environment }}:
     env: ${{ github.event.inputs.environment }}
-     name: 'Build and Deploy to ${{ github.event.inputs.environment }}'
+    name: 'Build and Deploy to ${{ github.event.inputs.environment }}'
