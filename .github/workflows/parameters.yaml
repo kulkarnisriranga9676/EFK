@@ -30,11 +30,12 @@ jobs:
             echo "::add-mask::$option" # Mask the options if sensitive
             echo "Available option: $option"
             # Use the options to perform actions or set dynamic inputs
-            # For example, set inputs using matrix strategy
-            # Use your logic here to determine the inputs based on the file content
+            # For example, set environment variables or inputs for subsequent steps
+            echo "INPUT_OPTION=$option" >> $GITHUB_ENV
           done
 
       # Use the dynamically chosen input in subsequent steps
       - name: Next Step
-        run: echo "Using dynamically chosen input: ${{ steps.choose-input.outputs.chosen-option }}"
-        # Perform actions or use the chosen input in subsequent steps
+        run: |
+          echo "Using dynamically chosen input: $INPUT_OPTION"
+          # Perform actions using the dynamically chosen input
