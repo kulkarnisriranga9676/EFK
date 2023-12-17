@@ -34,10 +34,10 @@ jobs:
         #       Authorization: Bearer ${{ secrets.PAT }} # Replace with your Personal Access Token (PAT)
         #   env:
         #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      env:
+            ENV_VERSION: ${{ secrets.Sample_VERSION }}
 
-        - name: Print Review Comments
-          run: |
-            echo "Version: ${{ secrets.VERSION }}"
-            # comments="${{ steps.comments.outputs.data }}"
-            # echo "Reviewer Comments:"
-            # echo "$comments"
+          steps:
+            - name: Print Version from Sample Environment
+              run: |
+                echo "Version: $ENV_VERSION"
