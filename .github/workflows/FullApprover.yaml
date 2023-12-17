@@ -2,30 +2,19 @@ name: New Approval Workflow
 
 on:
   workflow_dispatch:
-    inputs:
-      issue_number:
-        description: 'Issue number for approval'
-        required: true
 
 jobs:
   review_environment:
     environment: Sample
     runs-on: ubuntu-latest
     steps:
-      - name: Get Issue Comments
-        id: get_comments
+      
+      - name: Fetch Workflow Run Comments
+        id: workflow_run_comments
+        if: steps.workflow_run_details.outputs.run_number != ''
         run: |
+          RUN_NUMBER="${{ steps.workflow_run_details.outputs.run_number }}"
           COMMENTS=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.inputs.issue_number }}/comments")
-          echo "::set-output name=comments::$(echo $COMMENTS)"
+                      "https://api.github.com/repos/${{ github.repository }}/actions/runs/${RUN_NUMBER}/timing")
 
-      - name: Find Approval Comment
-        id: find_approval_comment
-        run: |
-          # Parse comments to find the specific approval comment format
-          # Example: Use jq or other tools to parse JSON
-
-      - name: Use Approval Comment
-        if: steps.find_approval_comment.outputs.comment != ''
-        run: |
-          echo "The approval comment is: ${{ steps.find_approval_comment.outputs.comment }}"
+          echo "$COMMENTS" # Output the comments JSON for the specific run
