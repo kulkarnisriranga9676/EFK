@@ -27,20 +27,22 @@ on:
           - 'QA'
           - 'UAT'
           - 'PROD'
-      # Tag: 
-      #   description: 'Tag [ Ex: QA-123 ]'
-      #   required: false
-      #   type: string
-        
+      Tag:
+        description: "Tag"
+        type: string
+      
 jobs:
   Facade-Deploy:
+    name: 'Deploying to ${{ github.event.inputs.Tag }} to ${{ github.event.inputs.environment }} Env'
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.version }}
-    name: 'Build and Deploy to ${{ github.event.inputs.version }}'
     steps:
-      - name: Running Command
+      - name: Running Version Command
         run: |
           echo "Version Selected : ${{ github.event.inputs.version }}"
-      - name: Running Command
+      - name: Running Environment Command
         run: |
           echo "Environment Selected : ${{ github.event.inputs.environment }}"
+      - name: Running Tag Command
+        run: |
+          echo "Environment Selected : ${{ github.event.inputs.Tag }}"
