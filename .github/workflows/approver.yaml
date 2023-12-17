@@ -11,9 +11,6 @@ jobs:
     env:
       ENV_VERSION: ${{ secrets.Sample_VERSION }}
     steps:
-      - name: Debug - List Environment Variables
-        run: |
-          env
       - name: Print Version from Sample Environment
         run: |
-          echo "Version: $ENV_VERSION"
+          echo "VERSION: $VERSION"
