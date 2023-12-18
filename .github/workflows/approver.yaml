@@ -1,33 +1,67 @@
-name: Full Approval Workflow
+# Unified File
+name: 'Facadeapi Unified Deployment '
+run-name: Deploying  ${{github.ref_name}} Tag to ${{ github.event.inputs.choice }} Environment
 
 on:
   workflow_dispatch:
-
+    inputs:
+      version:
+        description: "Versions"
+        default: 'v2'
+        required: true
+        type: choice
+        options:
+          - 'normal'
+          - 'v1'
+          - 'v2'
+          - 'pro'
+          - 'consumers'
+      environment:
+        description: "Environments"
+        default: 'QA'
+        required: true
+        type: choice
+        options:
+          - 'qa'
+          - 'stage'
+          - 'production'
+      Tag:
+        description: 'Choose the Tag (Ex: qa-123)'
+        required: true
+        type: string
 jobs:
-  approval:
-    # if: github.event_name == 'workflow_dispatch'
-    # if: github.event.review.state == 'approved' && matrix.environment == 'Sample'
-    environment: Sample
-    runs-on: ubuntu-latest
-    # steps:
-    #   - name: Print Version from Sample Environment
-    #     run: |
-    #       echo "VERSION: ${{ vars.VERSION }}"
+  Facadeapi:
+    name: 'Facadeapi Deploy'
+    runs-on: ${{ github.event.inputs.environment == 'qa' && 'skyhive-staging-runner' || github.event.inputs.environment == 'stage' && 'skyhive-management-runner' || github.event.inputs.environment == 'production' && 'skyhive-live-runner'}}
+    environment: ${{ github.event.inputs.environment }}
+    env:
+      buildnumber: '${{ github.event.inputs.environment }}-${{ github.run_number }}'
+      NAMESPACE: skyhive
+      ECR_URL: 596298976885.dkr.ecr.ca-central-1.amazonaws.com
+      KUBECONFIG: /root/.kube/config
+      HOME_PATH: /home/ubuntu/actions-runner/_work/facadeapi/facadeapi/deployment
+      AWS_REGION: ca-central-1
+      deploy_version: ${{ github.event.inputs.version }}
+      SERVICEACCOUNT: skyhive
+
+
+      
+      spring_profiles_active: qa
+      CERT_ARN: "arn:aws:acm:ca-central-1:027795646707:certificate/c32eb085-5138-47ed-b87f-7a577949fe66"
+      EKS_CLUSTERNAME: paas-eks-qa
+      KUBECONFIG: /root/.kube/config
+      HOME_PATH: /home/ubuntu/actions-runner/_work/facadeapi/facadeapi/deployment
+      API_TOKEN: ${{ secrets.API_TOKEN }}
+      PASS_TOKEN: ${{ secrets.PASS_TOKEN }}
+      AWS_ACCOUNT_ID: "596298976885" # this used in pom.xml to generate ecrUrl
+      ASSUME_ROLE: arn:aws:iam::027795646707:role/skyhive-staging-qa-terraform-automation-role
+      ASSUME_SESSION_NAME: qa-env
+      ES_INTERNAL_MASTER: 10.30.174.227
+      MIN_REPLICAS: 1
+      MAX_REPLICAS: 3
+      instrumentation_key: ${{ secrets.QA_INSTRUMENTATIONKEY }}
     steps:
-      - name: Get Issue Comments
-        id: get_comments
+      - name: Running Test Command
         run: |
-          COMMENTS=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          "https://api.github.com/repos/${{ github.repository }}/issues/${{ inputs.issue_number }}/comments")
-          echo "::set-output name=comments::$(echo $COMMENTS)"
+          echo "Testing"
 
-      - name: Find Approval Comment
-        id: find_approval_comment
-        run: |
-          # Parse comments to find the specific approval comment format
-          # Example: Use jq or other tools to parse JSON
-
-      - name: Use Approval Comment
-        if: steps.find_approval_comment.outputs.comment != ''
-        run: |
-          echo "The approval comment is: ${{ steps.find_approval_comment.outputs.comment }}"
