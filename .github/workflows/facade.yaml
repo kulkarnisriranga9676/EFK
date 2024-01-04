@@ -30,11 +30,11 @@ on:
         required: true
 jobs:
   if [ ${{ github.event.inputs.environment }} == "QA" ]; then
-  qa:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Printing QA
-        run: echo " Selected ${{ github.event.inputs.environment }} "
+    qa:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Printing QA
+          run: echo " Selected ${{ github.event.inputs.environment }} "
   elif [ ${{ github.event.inputs.environment }} == "UAT" ]; then
     mgmt:
       runs-on: ubuntu-latest
