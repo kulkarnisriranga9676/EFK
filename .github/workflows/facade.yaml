@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Printing QA
-        run: echo " Selected ${{ github.event.inputs.environment }}
+        run: echo " Selected ${{ github.event.inputs.environment }} ""
   # elif [ ${{ github.event.inputs.environment }} == "UAT" ]; then
   #   mgmt:
   #     runs-on: ubuntu-latest
