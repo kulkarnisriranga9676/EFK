@@ -29,15 +29,15 @@ on:
         description: Deploy_ImageTag
         required: true
 jobs:
-  if [ ${{ github.event.inputs.environment }} == "QA" ]; then
+  # if [ ${{ github.event.inputs.environment }} == "QA" ]; then
   qa:
     runs-on: ubuntu-latest
     steps:
       - name: Printing QA
         run: echo " Selected ${{ github.event.inputs.environment }}
-  elif [ ${{ github.event.inputs.environment }} == "UAT" ]; then
-    mgmt:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Printing Mgmt
-          run: echo " Selected ${{ github.event.inputs.environment }}
+  # elif [ ${{ github.event.inputs.environment }} == "UAT" ]; then
+  #   mgmt:
+  #     runs-on: ubuntu-latest
+  #     steps:
+  #       - name: Printing Mgmt
+  #         run: echo " Selected ${{ github.event.inputs.environment }}
