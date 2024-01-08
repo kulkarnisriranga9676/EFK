@@ -31,14 +31,14 @@ on:
         required: true
 jobs:
   qa:
-    if: ${{ github.event.inputs.environment == "QA" }}
+    if: ${{ github.event.inputs.environment == 'QA' }}
     runs-on: ubuntu-latest
     steps:
       - name: Printing QA
         run: echo "Selected ${{ github.event.inputs.environment }}"
 
   mgmt:
-    if: ${{ github.event.inputs.environment == "UAT" }}
+    if: ${{ github.event.inputs.environment == 'UAT' }}
     runs-on: ubuntu-latest
     steps:
       - name: Printing Mgmt
