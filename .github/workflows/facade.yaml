@@ -1,5 +1,5 @@
 name: 'facadeapi-prod-TagBased'
-run-name: 'FacadeAPI ${{github.ref_name}} Branch to ${{ github.event.inputs.environment }} Env for ${{ github.event.inputs.options }} '
+run-name: 'FacadeAPI ${{github.ref_name}} Branch to ${{ github.event.inputs.environment }} Env for ${{ github.event.inputs.version }} '
 
 on:
   workflow_dispatch:
