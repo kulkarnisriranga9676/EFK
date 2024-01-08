@@ -1,5 +1,5 @@
 name: 'facadeapi-prod-TagBased'
-run-name: 'FacadeAPI ${{github.ref_name}} Branch to ${{ github.event.inputs.environment }} Env for ${{ github.event.inputs.version }} '
+run-name: ' Deploying ${{ github.event.inputs.version }} Service to ${{ github.event.inputs.environment }} Cluster for ${{github.ref_name}} Branch '
 
 on:
   workflow_dispatch:
