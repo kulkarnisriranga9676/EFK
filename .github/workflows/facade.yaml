@@ -10,12 +10,13 @@ on:
         required: true
         type: choice
         options:
-          - 'a'
-          - 'b'
-          - 'c'
-          - 'd'
-          - 'e'
-          - 'f'
+          - 'normal'
+          - 'v1'
+          - 'v2'
+          - 'pro'
+          - 'consumers'
+          - 'streams'
+          - 'pwc'
       environment:
         description: 'Environment'
         required: true
