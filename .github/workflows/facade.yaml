@@ -30,17 +30,455 @@ on:
         type: string
         description: Deploy_ImageTag
         required: true
+
+env:
+  NAMESPACE: skyhive
+  ECR_URL: 596298976885.dkr.ecr.ca-central-1.amazonaws.com
+  KUBECONFIG: /root/.kube/config
+  HOME_PATH: /home/ubuntu/actions-runner/_work/facadeapi/facadeapi/deployment
+  AWS_REGION: ca-central-1
+  deploy_version: ${{ github.event.inputs.version }}
+  dTag: ${{ github.event.inputs.ImageTag }}
+  buildnumber: ${{ github.event.inputs.ImageTag }}
+  SERVICEACCOUNT: skyhive
+
 jobs:
   qa:
-    if: ${{ github.event.inputs.environment == 'QA' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Printing QA
-        run: echo "Selected ${{ github.event.inputs.environment }}"
+    if: ${{ github.event.inputs.environment == 'QA' }}  
+    environment: qa
+    name: 'Build and Deploy to QA'
+    runs-on: skyhive-staging-runner
+    env:
+      spring_profiles_active: qa
+      CERT_ARN: "arn:aws:acm:ca-central-1:027795646707:certificate/c32eb085-5138-47ed-b87f-7a577949fe66"
+      EKS_CLUSTERNAME: paas-eks-qa
+      KUBECONFIG: /root/.kube/config
+      HOME_PATH: /home/ubuntu/actions-runner/_work/facadeapi/facadeapi/deployment
+      API_TOKEN: ${{ secrets.API_TOKEN }}
+      PASS_TOKEN: ${{ secrets.PASS_TOKEN }}
+      AWS_ACCOUNT_ID: "596298976885" # this used in pom.xml to generate ecrUrl
+      ASSUME_ROLE: arn:aws:iam::027795646707:role/skyhive-staging-qa-terraform-automation-role
+      ASSUME_SESSION_NAME: qa-env
+      ES_INTERNAL_MASTER: 10.30.174.227
+      MIN_REPLICAS: 1
+      MAX_REPLICAS: 3
+      instrumentation_key: ${{ secrets.QA_INSTRUMENTATIONKEY }}
 
-  mgmt:
-    if: ${{ github.event.inputs.environment == 'UAT' }}
-    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
     steps:
-      - name: Printing Mgmt
-        run: echo "Selected ${{ github.event.inputs.environment }}"
+      - name: git repo Checkout
+        uses: actions/checkout@v2
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '18'
+
+      # - name: Set up Maven
+      #   uses: stCarolas/setup-maven@v4.3
+      #   with:
+      #     maven-version: 3.8.2
+
+      - name: ECR Login
+        run: |
+          aws sts get-caller-identity
+          cd deployment
+          sudo chmod 777 assume-role.sh
+          dos2unix assume-role.sh
+          ./assume-role.sh
+          source assume-role
+          aws sts get-caller-identity
+          aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URL}
+          cd ..
+
+      - name: Retrieve Repo names based on Version
+        run: |
+          # if [ "${{ github.event.inputs.version }}" == "pro" ]; then
+          #   # gateway not needed
+          #   cd apis
+          #   ls -d */ | tr -d '//' | grep -E "${pro_services}" | sed  '/target/d' >> $HOME_PATH/repo.txt
+          #   sleep 5
+          # else
+            if [ ${{ github.event.inputs.version }} == "consumers" ]; then
+              cd consumers
+              ls -d */ | tr -d '//' | sed '/target/d' > $HOME_PATH/repo.txt
+              sleep 5
+              cd ..
+            elif [ ${{ github.event.inputs.version }} == "streams" ]; then
+              cd streams
+              ls -d */ | tr -d '//' | sed '/target/d' > $HOME_PATH/repo.txt
+              sleep 5
+              cd ..
+            else
+              ls -d */ | tr -d '//' | grep -i gateway > $HOME_PATH/repo.txt
+              sleep 5
+              ls -d */ | tr -d '//' | grep -i config > $HOME_PATH/repo.txt
+              sleep 5
+              cd apis
+              ls -d */ | tr -d '//' | sed  '/target/d' >> $HOME_PATH/repo.txt
+              sleep 5
+           fi
+
+      # - name: Build the maven
+      #   run: mvn -T 4C clean install jib:build -DskipTests
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ca-central-1
+          role-to-assume: arn:aws:iam::027795646707:role/skyhive-staging-qa-terraform-automation-role
+
+      - name: Creation of the namespace and serviceaccount if not exists
+        run: |
+          cd deployment
+          aws eks update-kubeconfig --name $EKS_CLUSTERNAME --region ${AWS_REGION}
+
+          # Namespace
+          kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+          # Service account
+          kubectl create serviceaccount ${SERVICEACCOUNT} -n "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy the scheduler
+        run: |
+          cd deployment
+          sed "/image:/ s/$/:${buildnumber}/" schedulerdeployment.yaml > schedulerdeploymenttag.yaml
+          dos2unix schedulershell.sh
+          sudo chmod 777 schedulershell.sh
+          ./schedulershell.sh
+          cd ..
+
+      - name: Deploy the eks Cluster-Autoscaler to scale in/out nodes
+        run: |
+          cd deployment
+          sudo chmod 777 eks_cluster_scale.sh
+          dos2unix eks_cluster_scale.sh
+          ./eks_cluster_scale.sh
+          sleep 5
+          cd ..
+
+      - name: Create OIDC issuer if not exists
+        run: |
+          cd deployment
+          sudo chmod 777 eks_oidc.sh
+          dos2unix eks_oidc.sh
+          ./eks_oidc.sh
+          sleep 5
+          cd ..
+
+      - name: Deploy to eks-cluster
+        run: |
+          if [ ${{ github.event.inputs.version }} == "streams" ]; then
+            cd deployment
+            sed -i -e "s/ES_INTERNAL_MASTER/${ES_INTERNAL_MASTER}/g" deploy-streams.yaml
+            sed -i -e "s/MIN_REPLICAS/${MIN_REPLICAS}/g" deploy-streams.yaml
+            sed -i -e "s/MAX_REPLICAS/${MAX_REPLICAS}/g" deploy-streams.yaml
+            sed -i -e "s/AZURE_KEY/${instrumentation_key}/g" deploy-streams.yaml
+
+            sed "/image:/ s/$/:$buildnumber/" deploy-streams.yaml > deployment.yaml
+            sudo chmod 777 eksshell.sh
+            dos2unix eksshell.sh
+            ./eksshell.sh
+            sleep 5
+            cd ..
+            
+          else  
+            cd deployment
+            sed -i -e "s/ES_INTERNAL_MASTER/${ES_INTERNAL_MASTER}/g" deploy.yaml
+            sed -i -e "s/MIN_REPLICAS/${MIN_REPLICAS}/g" deploy.yaml
+            sed -i -e "s/MAX_REPLICAS/${MAX_REPLICAS}/g" deploy.yaml
+            sed -i -e "s/AZURE_KEY/${instrumentation_key}/g" deploy.yaml
+
+            sed "/image:/ s/$/:$buildnumber/" deploy.yaml > deployment.yaml
+            sudo chmod 777 eksshell.sh
+            dos2unix eksshell.sh
+            ./eksshell.sh
+            sleep 5
+            cd ..
+          fi
+
+      - name: Installation of the metrics server
+        run: |
+          cd deployment
+          sudo chmod 777 metricserver.sh
+          dos2unix metricserver.sh
+          ./metricserver.sh
+          sleep 5
+          cd ..
+
+      - name: Flush RedisDB
+        run: |
+          cd deployment
+          sed -i -e "s/REDIS_HOST/${REDIS_HOST}/g" redis_deleteKeys.yaml
+          sed -i -e "s/REDIS_PASSWORD/${REDIS_PASSWORD}/g" redis_deleteKeys.yaml
+
+          kubectl delete -f redis_deleteKeys.yaml -n ${NAMESPACE} --ignore-not-found=true
+          kubectl apply -f redis_deleteKeys.yaml -n ${NAMESPACE}
+          sleep 5
+          cd ..
+
+  management:
+    if: ${{ github.event.inputs.environment == 'UAT' }}  
+    environment: management
+    name: 'Deploy to UAT'
+    runs-on: skyhive-management-runner
+    env:
+      # spring_profiles_active: stage
+      spring_profiles_active: ${{ github.event.inputs.version == 'pwc' && 'pwcuat' || 'stage'}}
+      CERT_ARN: arn:aws:acm:ca-central-1:596298976885:certificate/3c4256a1-973f-4af1-8fed-24b845a2f755
+      EKS_CLUSTERNAME: paas-lhh-dev
+      API_TOKEN: ${{ secrets.API_TOKEN }}
+      PASS_TOKEN: ${{ secrets.PASS_TOKEN }}
+      AWS_ACCOUNT_ID: 596298976885
+      ROLE_ARN: arn:aws:iam::596298976885:role/skyhive-terraform-automation-role
+      ES_INTERNAL_MASTER: 172.31.80.92
+      MIN_REPLICAS: 2
+      MAX_REPLICAS: 3
+      instrumentation_key: ${{ secrets.UAT_INSTRUMENTATIONKEY }}
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: git repo Checkout
+        uses: actions/checkout@v2
+
+      - name: ECR Login
+        run: |
+          aws sts get-caller-identity
+          cd deployment
+          sudo chmod 777 assume-role.sh
+          dos2unix assume-role.sh
+          ./assume-role.sh
+          source assume-role
+          aws sts get-caller-identity
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
+          cd ..
+
+      - name: Retrieve Repo names based on Version
+        run: |
+          # if [ "${{ github.event.inputs.version }}" == "pro" ]; then
+          #   # gateway not needed
+          #   cd apis
+          #   ls -d */ | tr -d '//' | grep -E "${pro_services}" | sed  '/target/d' >> $HOME_PATH/repo.txt
+          #   sleep 5
+          # else
+            if [ ${{ github.event.inputs.version }} == "consumers" ]; then
+              cd consumers
+              ls -d */ | tr -d '//' | sed '/target/d' > $HOME_PATH/repo.txt
+              sleep 5
+              cd ..
+            elif [ ${{ github.event.inputs.version }} == "streams" ]; then
+              cd streams
+              ls -d */ | tr -d '//' | sed '/target/d' > $HOME_PATH/repo.txt
+              sleep 5
+              cd ..
+            else
+              ls -d */ | tr -d '//' | grep -i gateway > $HOME_PATH/repo.txt
+              sleep 5
+              cd apis
+              ls -d */ | tr -d '//' | sed  '/target/d' >> $HOME_PATH/repo.txt
+              sleep 5
+           fi
+
+      - name: Creation of the namespace and serviceaccount if not exists
+        run: |
+          cd deployment
+          aws eks update-kubeconfig --name $EKS_CLUSTERNAME --region ${AWS_REGION} --role-arn $ROLE_ARN
+
+          # Namespace
+          kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+          # Service account
+          kubectl create serviceaccount ${SERVICEACCOUNT} -n "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Pull, Tag and Push images
+        run: |
+          sed 's/gateway//g' $HOME_PATH/repo.txt > $HOME_PATH/repo1.txt
+          for i in `cat $HOME_PATH/repo1.txt`
+            do
+              tagName="${buildnumber}"
+              newTagName="${tagName/qa/staging}"
+
+              imageName=`echo $i  | tr '[A-Z]' '[a-z]'`
+              echo $imageName
+              docker pull ${ECR_URL}/$imageName:$tagName
+              docker tag ${ECR_URL}/$imageName:$tagName ${ECR_URL}/$imageName:$newTagName
+              docker push ${ECR_URL}/$imageName:$newTagName
+              sleep 5
+              cd ..
+            done
+
+      - name: Deploy to eks-cluster
+        run: |
+          
+          
+          qtagName="${buildnumber}"
+          sTagName="${qtagName/qa/staging}"
+          if [ ${{ github.event.inputs.version }} == "streams" ]; then
+            cd deployment
+            # update ES Master Alias address
+            sed -i -e "s/ES_INTERNAL_MASTER/${ES_INTERNAL_MASTER}/g" deploy-streams.yaml
+            sed -i -e "s/MIN_REPLICAS/${MIN_REPLICAS}/g" deploy-streams.yaml
+            sed -i -e "s/MAX_REPLICAS/${MAX_REPLICAS}/g" deploy-streams.yaml
+            sed -i -e "s/AZURE_KEY/${instrumentation_key}/g" deploy-streams.yaml
+            sed "/image:/ s/$/:$sTagName/" deploy-streams.yaml > deployment.yaml
+            sudo chmod 777 eksshell.sh
+            dos2unix eksshell.sh
+            ./eksshell.sh
+            sleep 5
+            cd ..
+          else
+            cd deployment
+            # update ES Master Alias address
+            sed -i -e "s/ES_INTERNAL_MASTER/${ES_INTERNAL_MASTER}/g" deploy.yaml
+            sed -i -e "s/MIN_REPLICAS/${MIN_REPLICAS}/g" deploy.yaml
+            sed -i -e "s/MAX_REPLICAS/${MAX_REPLICAS}/g" deploy.yaml
+            sed -i -e "s/AZURE_KEY/${instrumentation_key}/g" deploy.yaml
+            sed "/image:/ s/$/:$sTagName/" deploy.yaml > deployment.yaml
+            sudo chmod 777 eksshell.sh
+            dos2unix eksshell.sh
+            ./eksshell.sh
+            sleep 5
+            cd ..
+          fi
+
+      - name: Installation of the metrics server
+        run: |
+          cd deployment
+          sudo chmod 777 metricserver.sh
+          dos2unix metricserver.sh
+          ./metricserver.sh
+          sleep 5
+          cd ..
+
+  facadeapi-prod:
+    if: ${{ github.event.inputs.environment == 'Prod' }}  
+    #needs: management
+    environment: production
+    name: 'Deploy to Production'
+    runs-on: skyhive-live-runner
+    env:
+      # spring_profiles_active: prod
+      spring_profiles_active: ${{ github.event.inputs.version == 'pwc' && 'pwcprod' || 'prod'}}
+      CERT_ARN: arn:aws:acm:ca-central-1:611807204408:certificate/8d347c86-224d-4256-82bf-0bf0900dafeb
+      EKS_CLUSTERNAME: paas-eks-prod
+      API_TOKEN: ${{ secrets.API_TOKEN }}
+      PASS_TOKEN: ${{ secrets.PASS_TOKEN }}
+      AWS_ACCOUNT_ID: 611807204408
+      ROLE_ARN: arn:aws:iam::611807204408:role/skyhive-live-terraform-automation-role
+      ASSUME_ROLE: arn:aws:iam::611807204408:role/skyhive-live-terraform-automation-role
+      ASSUME_SESSION_NAME: live-env
+      ES_INTERNAL_MASTER: 50.0.185.152
+      MIN_REPLICAS: 2
+      MAX_REPLICAS: 5
+      instrumentation_key: ${{ secrets.PROD_INSTRUMENTATIONKEY }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: git repo Checkout
+        uses: actions/checkout@v2
+
+      - name: ECR Login
+        run: |
+          aws sts get-caller-identity
+          cd deployment
+          sudo chmod 777 assume-role.sh
+          dos2unix assume-role.sh
+          ./assume-role.sh
+          source assume-role
+          aws sts get-caller-identity
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
+          cd ..
+
+      - name: Retrieve Repo names based on Version
+        run: |
+          # if [ "${{ github.event.inputs.version }}" == "pro" ]; then
+          #   # gateway not needed
+          #   cd apis
+          #   ls -d */ | tr -d '//' | grep -E "${pro_services}" | sed  '/target/d' >> $HOME_PATH/repo.txt
+          #   sleep 5
+          # else
+            if [ ${{ github.event.inputs.version }} == "consumers" ]; then
+              cd consumers
+              ls -d */ | tr -d '//' | sed '/target/d' > $HOME_PATH/repo.txt
+              sleep 5
+              cd ..
+            elif [ ${{ github.event.inputs.version }} == "streams" ]; then
+              cd streams
+              ls -d */ | tr -d '//' | sed '/target/d' > $HOME_PATH/repo.txt
+              sleep 5
+              cd ..
+            else
+              ls -d */ | tr -d '//' | grep -i gateway > $HOME_PATH/repo.txt
+              sleep 5
+              cd apis
+              ls -d */ | tr -d '//' | sed  '/target/d' >> $HOME_PATH/repo.txt
+              sleep 5
+           fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ca-central-1
+          role-to-assume: arn:aws:iam::611807204408:role/skyhive-live-terraform-automation-role
+
+      - name: Creation of the namespace and serviceaccount if not exists
+        run: |
+          cd deployment
+          aws eks update-kubeconfig --name $EKS_CLUSTERNAME --region ${AWS_REGION} --role-arn $ROLE_ARN
+
+          # Namespace
+          kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+          # Service account
+          kubectl create serviceaccount ${SERVICEACCOUNT} -n "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Pull, Tag and Push images
+        run: |
+          sed 's/gateway//g' $HOME_PATH/repo.txt > $HOME_PATH/repo1.txt
+          for i in `cat $HOME_PATH/repo1.txt`
+            do
+              tagName="${dTag}"
+              newTagName="${tagName/qa/prod}" # QA image will be promoted to Prod.
+
+              imageName=`echo $i  | tr '[A-Z]' '[a-z]'`
+              echo $imageName
+              docker pull ${ECR_URL}/$imageName:$tagName
+              docker tag ${ECR_URL}/$imageName:$tagName ${ECR_URL}/$imageName:$newTagName
+              docker push ${ECR_URL}/$imageName:$newTagName
+              sleep 5
+              cd ..
+            done
+
+      - name: Deploy to eks-cluster
+        run: |
+          tagName="${dTag}"
+          newTagName="${tagName/qa/prod}" # QA image will be promoted to Prod.
+          if [ ${{ github.event.inputs.version }} == "streams" ]; then
+            cd deployment
+            sed -i -e "s/ES_INTERNAL_MASTER/${ES_INTERNAL_MASTER}/g" deploy-streams.yaml
+            sed -i -e "s/MIN_REPLICAS/${MIN_REPLICAS}/g" deploy-streams.yaml
+            sed -i -e "s/MAX_REPLICAS/${MAX_REPLICAS}/g" deploy-streams.yaml
+            sed -i -e "s/AZURE_KEY/${instrumentation_key}/g" deploy-streams.yaml
+            sed "/image:/ s/$/:$newTagName/" deploy-streams.yaml > deployment.yaml
+            sudo chmod 777 eksshell.sh
+            dos2unix eksshell.sh
+            ./eksshell.sh
+            sleep 5
+            cd ..
+          else
+            cd deployment
+            sed -i -e "s/ES_INTERNAL_MASTER/${ES_INTERNAL_MASTER}/g" deploy.yaml
+            sed -i -e "s/MIN_REPLICAS/${MIN_REPLICAS}/g" deploy.yaml
+            sed -i -e "s/MAX_REPLICAS/${MAX_REPLICAS}/g" deploy.yaml
+            sed -i -e "s/AZURE_KEY/${instrumentation_key}/g" deploy.yaml
+            sed "/image:/ s/$/:$newTagName/" deploy.yaml > deployment.yaml
+            sudo chmod 777 eksshell.sh
+            dos2unix eksshell.sh
+            ./eksshell.sh
+            sleep 5
+            cd ..
+          fi
