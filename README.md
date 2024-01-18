@@ -15,7 +15,7 @@ add container names or namespace in the below pattern to add to exclude list
 
 kubectl rollout restart daemonset <> -n namespace
 
-
+adas
 
 asd
 asd
