@@ -33,4 +33,4 @@ jobs:
 
       - name: Start/Stop/Status Instances
         run: |
-          gcloud compute instances ${{ github.event.inputs.action }} $INSTANCE1_IP $INSTANCE2_IP $INSTANCE3_IP
+          gcloud compute instances ${{ github.event.inputs.action }} 35.221.249.253 34.81.51.49 35.229.176.129
