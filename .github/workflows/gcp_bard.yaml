@@ -1,0 +1,66 @@
+name: GCE Instance Management
+
+on:
+  workflow_dispatch:  # Trigger manually
+    inputs:
+      action:
+        description: Action to perform (start, stop, or status)
+        required: true
+        type: choice
+        options:
+          - start
+          - stop
+          - status
+      instance_names:
+        description: Comma-separated list of instance names
+        required: true
+        type: string
+
+jobs:
+  manage-instances:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          # Optional: Specify gcloud version or skip installation
+          # version: ">=416.0.0"
+          # skip_install: true
+      - name: Authenticate with service account key (optional)
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      # Or use workload identity federation
+      # - uses: google-github-actions/auth@v1
+      #   with:
+      #     workload-identity-provider: true
+      - name: Parse workflow inputs
+        id: parse-inputs
+        run: |
+          action=${{inputs.action}}
+          instance_names=${{inputs.instance_names}}
+          echo "Action: $action"
+          echo "Instance names: $instance_names"
+
+      - name: Manage instances based on action
+        run: |
+          case "$action" in
+            "start")
+              gcloud compute instances start $instance_names
+              ;;
+            "stop")
+              gcloud compute instances stop $instance_names
+              ;;
+            "status")
+              for instance in $instance_names; do
+                status=$(gcloud compute instances describe $instance --format="value(status)")
+                echo "Instance $instance is: $status"
+              done
+              ;;
+            *)
+              echo "Invalid action: $action"
+              exit 1
+              ;;
+          esac
+
+
