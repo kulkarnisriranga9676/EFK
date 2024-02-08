@@ -1,4 +1,4 @@
-name: GCE Instance Management
+name: GCE Bard Instance Management
 
 on:
   workflow_dispatch:  # Trigger manually
