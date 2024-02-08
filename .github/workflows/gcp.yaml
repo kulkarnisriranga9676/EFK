@@ -8,6 +8,7 @@ on:
         required: true
         type: choice
         options: ['start', 'stop', 'status']
+        default: status
 
 env:
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
