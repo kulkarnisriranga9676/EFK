@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: 'Action to perform: start, stop, or status'
+        description: 'Action to perform'
         required: true
-        default: 'status'
+        options: ['start', 'stop', 'status']
 
 env:
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
