@@ -7,7 +7,7 @@ on:
         description: 'Action to perform'
         required: true
         type: choice
-        options: ['start', 'stop', 'status']
+        options: ['status','start', 'stop']
         default: status
 
 env:
