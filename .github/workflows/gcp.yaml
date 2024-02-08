@@ -33,4 +33,4 @@ jobs:
 
       - name: Start/Stop/Status Instances
         run: |
-          gcloud compute instances describe 35.221.249.253 --project=$GCP_PROJECT_ID --zone=asia-east1-c
+          gcloud compute instances describe instance-1 --project=$GCP_PROJECT_ID --zone=asia-east1-c
