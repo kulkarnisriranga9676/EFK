@@ -1,0 +1,23 @@
+name: Build and Upload HTML Artifact
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Build HTML
+      run: echo "hello" > sample.html
+      
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: my-html-artifact
+        path: sample.html
