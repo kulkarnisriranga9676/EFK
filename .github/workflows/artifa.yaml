@@ -12,7 +12,9 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Build HTML
-      run: echo "hello" > sample.html
+      run: |
+        echo "hello" > sample.html
+        echo "Content-Type: text/html" > sample.html.metadata
       
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
