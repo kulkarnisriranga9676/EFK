@@ -45,10 +45,8 @@ env:
 jobs:
   facadeapi-prod:
     if: ${{ github.event.inputs.environment == 'Prod' }}  
-    #needs: management
-    # environment: production
     name: 'Deploy to Production'
-    # runs-on: skyhive-live-runner
+    runs-on: ubuntu-latest
     env:
       # spring_profiles_active: prod
       spring_profiles_active: ${{ github.event.inputs.version == 'pwc' && 'pwcprod' || 'prod'}}
