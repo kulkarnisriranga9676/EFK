@@ -48,7 +48,23 @@ jobs:
     environment: production
     name: 'Deploy to Production'
     runs-on: ubuntu-latest
-
+    env:
+      spring_profiles_active: ${{ github.event.inputs.version == 'pwc' && 'pwcprod' || 'prod'}}
+      AWS_ACCOUNT_ID: 611807204408
+      ASSUME_SESSION_NAME: live-env
+      ES_INTERNAL_MASTER: 50.0.185.152
+      MIN_REPLICAS: 2
+      MAX_REPLICAS: 5
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Repo reading
+        run: |
+          cd apis
+              ls -d */ | tr -d '//' | sed  '/target/d' >> $HOME_PATH/repo.txt
+              sleep 5
+        
   # facadeapi-prod:
   #   if: ${{ github.event.inputs.environment == 'Prod' }}  
   #   name: 'Deploy to Production'
