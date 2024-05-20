@@ -43,94 +43,100 @@ env:
   SERVICEACCOUNT: skyhive
 
 jobs:
-  facadeapi-prod:
-    if: ${{ github.event.inputs.environment == 'Prod' }}  
+  facade-prod:
+    if: ${{ github.event.inputs.environment == 'Prod' }}
+    environment: production
     name: 'Deploy to Production'
     runs-on: ubuntu-latest
-    env:
-      # spring_profiles_active: prod
-      spring_profiles_active: ${{ github.event.inputs.version == 'pwc' && 'pwcprod' || 'prod'}}
-      CERT_ARN: arn:aws:acm:ca-central-1:123:certificate/8d347c86-224d-4256-82bf-0bf0900dafeb
-      EKS_CLUSTERNAME: paas-eks-prod
-      AWS_ACCOUNT_ID: 123
-      ROLE_ARN: arn:aws:iam::611807204408:role/skyhive-live-terraform-automation-role
-      ASSUME_ROLE: arn:aws:iam::611807204408:role/skyhive-live-terraform-automation-role
-      ASSUME_SESSION_NAME: live-env
-      ES_INTERNAL_MASTER: 1.0.2.3
-      MIN_REPLICAS: 2
-      MAX_REPLICAS: 5
-    defaults:
-      run:
-        shell: bash
-    steps:
-       - name: Retrieve Repo names based on Version
-         run: |
-          # if [ "${{ github.event.inputs.version }}" == "pro" ]; then
-          #   # gateway not needed
-          #   cd apis
-          #   ls -d */ | tr -d '//' | grep -E "${pro_services}" | sed  '/target/d' >> $HOME_PATH/repo.txt
-          #   sleep 5
-          # else
-            if [ ${{ github.event.inputs.version }} == "consumers" ]; then
-              cd consumers
-              ls -d */ | tr -d '//' | sed '/target/d' > $HOME_PATH/repo.txt
-              sleep 5
-              cd ..
-            elif [ ${{ github.event.inputs.version }} == "streams" ]; then
-              cd streams
-              ls -d */ | tr -d '//' | sed '/target/d' > $HOME_PATH/repo.txt
-              sleep 5
-              cd ..
-            else
-              ls -d */ | tr -d '//' | grep -i gateway > $HOME_PATH/repo.txt
-              sleep 5
-              cd apis
-              ls -d */ | tr -d '//' | sed  '/target/d' >> $HOME_PATH/repo.txt
-              sleep 5
-           fi
 
-      - name: Pull, Tag and Push images
-        run: |
-          for i in `cat $HOME_PATH/repo1.txt`
-            do
-              tagName="${dTag}"
-              newTagName="${tagName/qa/prod}" # QA image will be promoted to Prod.
+  # facadeapi-prod:
+  #   if: ${{ github.event.inputs.environment == 'Prod' }}  
+  #   name: 'Deploy to Production'
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     # spring_profiles_active: prod
+  #     spring_profiles_active: ${{ github.event.inputs.version == 'pwc' && 'pwcprod' || 'prod'}}
+  #     CERT_ARN: arn:aws:acm:ca-central-1:123:certificate/8d347c86-224d-4256-82bf-0bf0900dafeb
+  #     EKS_CLUSTERNAME: paas-eks-prod
+  #     AWS_ACCOUNT_ID: 123
+  #     ROLE_ARN: arn:aws:iam::611807204408:role/skyhive-live-terraform-automation-role
+  #     ASSUME_ROLE: arn:aws:iam::611807204408:role/skyhive-live-terraform-automation-role
+  #     ASSUME_SESSION_NAME: live-env
+  #     ES_INTERNAL_MASTER: 1.0.2.3
+  #     MIN_REPLICAS: 2
+  #     MAX_REPLICAS: 5
+  #   defaults:
+  #     run:
+  #       shell: bash
+  #   steps:
+  #      - name: Retrieve Repo names based on Version
+  #        run: |
+  #         # if [ "${{ github.event.inputs.version }}" == "pro" ]; then
+  #         #   # gateway not needed
+  #         #   cd apis
+  #         #   ls -d */ | tr -d '//' | grep -E "${pro_services}" | sed  '/target/d' >> $HOME_PATH/repo.txt
+  #         #   sleep 5
+  #         # else
+  #           if [ ${{ github.event.inputs.version }} == "consumers" ]; then
+  #             cd consumers
+  #             ls -d */ | tr -d '//' | sed '/target/d' > $HOME_PATH/repo.txt
+  #             sleep 5
+  #             cd ..
+  #           elif [ ${{ github.event.inputs.version }} == "streams" ]; then
+  #             cd streams
+  #             ls -d */ | tr -d '//' | sed '/target/d' > $HOME_PATH/repo.txt
+  #             sleep 5
+  #             cd ..
+  #           else
+  #             ls -d */ | tr -d '//' | grep -i gateway > $HOME_PATH/repo.txt
+  #             sleep 5
+  #             cd apis
+  #             ls -d */ | tr -d '//' | sed  '/target/d' >> $HOME_PATH/repo.txt
+  #             sleep 5
+  #          fi
 
-              imageName=`echo $i  | tr '[A-Z]' '[a-z]'`
-              if [ $imageName == 'employees' ]; then
-                MIN_REPLICAS: 3
-                MAX_REPLICAS:20
-              fi
-              echo $imageName
-              cd ..
-            done
+  #     - name: Pull, Tag and Push images
+  #       run: |
+  #         for i in `cat $HOME_PATH/repo1.txt`
+  #           do
+  #             tagName="${dTag}"
+  #             newTagName="${tagName/qa/prod}" # QA image will be promoted to Prod.
 
-      - name: Deploy to eks-cluster
-        run: |
-          tagName="${dTag}"
-          newTagName="${tagName/qa/prod}" # QA image will be promoted to Prod.
-          if [ ${{ github.event.inputs.version }} == "streams" ]; then
-            cd deployment
-            sed -i -e "s/ES_INTERNAL_MASTER/${ES_INTERNAL_MASTER}/g" deploy-streams.yaml
-            sed -i -e "s/MIN_REPLICAS/${MIN_REPLICAS}/g" deploy-streams.yaml
-            sed -i -e "s/MAX_REPLICAS/${MAX_REPLICAS}/g" deploy-streams.yaml
-            sed -i -e "s/AZURE_KEY/${instrumentation_key}/g" deploy-streams.yaml
-            sed "/image:/ s/$/:$newTagName/" deploy-streams.yaml > deployment.yaml
-            sudo chmod 777 eksshell.sh
-            dos2unix eksshell.sh
-            ./eksshell.sh
-            sleep 5
-            cd ..
-          else
-            cd deployment
-            sed -i -e "s/ES_INTERNAL_MASTER/${ES_INTERNAL_MASTER}/g" deploy.yaml
-            sed -i -e "s/MIN_REPLICAS/${MIN_REPLICAS}/g" deploy.yaml
-            sed -i -e "s/MAX_REPLICAS/${MAX_REPLICAS}/g" deploy.yaml
-            sed "/image:/ s/$/:$newTagName/" deploy.yaml > deployment.yaml
-            cat deployment.yaml
-            # sudo chmod 777 eksshell.sh
-            # dos2unix eksshell.sh
-            # ./eksshell.sh
-            # sleep 5
-            cd ..
-          fi
+  #             imageName=`echo $i  | tr '[A-Z]' '[a-z]'`
+  #             if [ $imageName == 'employees' ]; then
+  #               MIN_REPLICAS: 3
+  #               MAX_REPLICAS:20
+  #             fi
+  #             echo $imageName
+  #             cd ..
+  #           done
+
+  #     - name: Deploy to eks-cluster
+  #       run: |
+  #         tagName="${dTag}"
+  #         newTagName="${tagName/qa/prod}" # QA image will be promoted to Prod.
+  #         if [ ${{ github.event.inputs.version }} == "streams" ]; then
+  #           cd deployment
+  #           sed -i -e "s/ES_INTERNAL_MASTER/${ES_INTERNAL_MASTER}/g" deploy-streams.yaml
+  #           sed -i -e "s/MIN_REPLICAS/${MIN_REPLICAS}/g" deploy-streams.yaml
+  #           sed -i -e "s/MAX_REPLICAS/${MAX_REPLICAS}/g" deploy-streams.yaml
+  #           sed -i -e "s/AZURE_KEY/${instrumentation_key}/g" deploy-streams.yaml
+  #           sed "/image:/ s/$/:$newTagName/" deploy-streams.yaml > deployment.yaml
+  #           sudo chmod 777 eksshell.sh
+  #           dos2unix eksshell.sh
+  #           ./eksshell.sh
+  #           sleep 5
+  #           cd ..
+  #         else
+  #           cd deployment
+  #           sed -i -e "s/ES_INTERNAL_MASTER/${ES_INTERNAL_MASTER}/g" deploy.yaml
+  #           sed -i -e "s/MIN_REPLICAS/${MIN_REPLICAS}/g" deploy.yaml
+  #           sed -i -e "s/MAX_REPLICAS/${MAX_REPLICAS}/g" deploy.yaml
+  #           sed "/image:/ s/$/:$newTagName/" deploy.yaml > deployment.yaml
+  #           cat deployment.yaml
+  #           # sudo chmod 777 eksshell.sh
+  #           # dos2unix eksshell.sh
+  #           # ./eksshell.sh
+  #           # sleep 5
+  #           cd ..
+  #         fi
