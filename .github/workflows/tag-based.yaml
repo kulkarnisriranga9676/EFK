@@ -89,8 +89,8 @@ jobs:
           for i in `cat repo.txt`
           do
             if [ $imageName == 'employees' ]; then
-              sed -i -e "s/MIN_REPLICAS/3/g" deploy.yaml
-              sed -i -e "s/MAX_REPLICAS/20/g" deploy.yaml
+              sed -i -e "s/MIN_REPLICAS/'3'/g" deploy.yaml
+              sed -i -e "s/MAX_REPLICAS/'20'/g" deploy.yaml
             else
               sed -i -e "s/MIN_REPLICAS/${MIN_REPLICAS}/g" deploy.yaml
               sed -i -e "s/MAX_REPLICAS/${MAX_REPLICAS}/g" deploy.yaml
