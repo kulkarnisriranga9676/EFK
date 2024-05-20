@@ -96,6 +96,8 @@ jobs:
           for ((j=1; j<=count; j++)); do
             pro=lhh$j
             echo "Printing Needed : $pro"
+            cat deployment.yaml
+            echo "If loop started"
             if [ "${deploy_version}" == "normal" ]; then
               sed -e "s/\${ECR_URL}/${ECR_URL}/g;s/\${project.artifactId}/${!pro}/g;s/\${environment}/${spring_profiles_active}/g;s/SERVICE_NAME/${!pro}/g;" deployment.yaml >> eks.yaml
             else
