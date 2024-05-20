@@ -65,9 +65,25 @@ jobs:
       run:
         shell: bash
     steps:
-      - name: Retrieve Repo names based on Version
+       - name: Retrieve Repo names based on Version
         run: |
-            if
+          # if [ "${{ github.event.inputs.version }}" == "pro" ]; then
+          #   # gateway not needed
+          #   cd apis
+          #   ls -d */ | tr -d '//' | grep -E "${pro_services}" | sed  '/target/d' >> $HOME_PATH/repo.txt
+          #   sleep 5
+          # else
+            if [ ${{ github.event.inputs.version }} == "consumers" ]; then
+              cd consumers
+              ls -d */ | tr -d '//' | sed '/target/d' > $HOME_PATH/repo.txt
+              sleep 5
+              cd ..
+            elif [ ${{ github.event.inputs.version }} == "streams" ]; then
+              cd streams
+              ls -d */ | tr -d '//' | sed '/target/d' > $HOME_PATH/repo.txt
+              sleep 5
+              cd ..
+            else
               ls -d */ | tr -d '//' | grep -i gateway > $HOME_PATH/repo.txt
               sleep 5
               cd apis
