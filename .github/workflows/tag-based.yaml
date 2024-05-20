@@ -82,6 +82,7 @@ jobs:
             done
       - name: Printing
         run: |
+          ls
           tagName="${dTag}"
           newTagName="${tagName/qa/prod}" # QA image will be promoted to Prod.
           sed -i -e "s/ES_INTERNAL_MASTER/${ES_INTERNAL_MASTER}/g" deploy.yaml
