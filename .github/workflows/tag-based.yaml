@@ -100,10 +100,10 @@ jobs:
               sed -i -e "s/minReplicas\: 5/minReplicas\: 20/g" deployment.yaml
             else
               if [ "${deploy_version}" == "normal" ]; then
-                echo "Printing If Cond $pro"
+                echo "Printing If Cond ${!pro}"
                 sed -e "s/\${ECR_URL}/${ECR_URL}/g;s/\${project.artifactId}/${!pro}/g;s/\${environment}/${spring_profiles_active}/g;s/SERVICE_NAME/${!pro}/g;" deployment.yaml >> eks.yaml
               else
-                echo "Printing else Cond $pro"
+                echo "Printing else Cond ${!pro}"
                 sed -e "s/\${ECR_URL}/${ECR_URL}/g;s/\${project.artifactId}/${!pro}-${deploy_version}/g;s/\${environment}/${spring_profiles_active}/g;s/SERVICE_NAME/${!pro}/g" deployment.yaml >> eks.yaml
               fi
             fi
