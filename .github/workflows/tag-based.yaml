@@ -59,6 +59,9 @@ jobs:
       run:
         shell: bash
     steps:
+      - name: git repo Checkout
+        uses: actions/checrunkout@v2
+        
       - name: Repo reading
         run: |
           cd apis
