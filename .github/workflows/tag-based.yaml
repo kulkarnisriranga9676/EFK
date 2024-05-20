@@ -1,4 +1,4 @@
-name: 'facadeapi-prod-TagBased'
+name: 'Testing HPA'
 run-name: ' Deploying "${{ github.event.inputs.version }}" Service to ${{ github.event.inputs.environment }} From ${{github.ref_name}} with Tag: ${{ github.event.inputs.ImageTag }}'
 
 on:
