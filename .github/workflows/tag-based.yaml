@@ -62,9 +62,48 @@ jobs:
       - name: Repo reading
         run: |
           cd apis
-              ls -d */ | tr -d '//' | sed  '/target/d' >> $HOME_PATH/repo.txt
-              sleep 5
-        
+          ls -d */ | tr -d '//' | sed  '/target/d' >> $HOME_PATH/repo.txt
+          sleep 5
+      - name: Reading for loop
+        run: |
+          for i in `cat $HOME_PATH/repo1.txt`
+            do
+              tagName="${dTag}"
+              newTagName="${tagName/qa/prod}" # QA image will be promoted to Prod.
+
+              imageName=`echo $i  | tr '[A-Z]' '[a-z]'`
+              if [ $imageName == 'employees' ]; then
+                MIN_REPLICAS: 3
+                MAX_REPLICAS:20
+              fi
+              echo $imageName
+              cd ..
+            done
+      - name: Printing
+        run: |
+          tagName="${dTag}"
+          newTagName="${tagName/qa/prod}" # QA image will be promoted to Prod.
+          # if [ ${{ github.event.inputs.version }} == "streams" ]; then
+          #   cd deployment
+          #   sed -i -e "s/ES_INTERNAL_MASTER/${ES_INTERNAL_MASTER}/g" deploy-streams.yaml
+          #   sed -i -e "s/MIN_REPLICAS/${MIN_REPLICAS}/g" deploy-streams.yaml
+          #   sed -i -e "s/MAX_REPLICAS/${MAX_REPLICAS}/g" deploy-streams.yaml
+          #   sed -i -e "s/AZURE_KEY/${instrumentation_key}/g" deploy-streams.yaml
+          #   sed "/image:/ s/$/:$newTagName/" deploy-streams.yaml > deployment.yaml
+          #   sudo chmod 777 eksshell.sh
+          #   dos2unix eksshell.sh
+          #   ./eksshell.sh
+          #   sleep 5
+          #   cd ..
+          # if
+          cd deployment
+          sed -i -e "s/ES_INTERNAL_MASTER/${ES_INTERNAL_MASTER}/g" deploy.yaml
+          sed -i -e "s/MIN_REPLICAS/${MIN_REPLICAS}/g" deploy.yaml
+          sed -i -e "s/MAX_REPLICAS/${MAX_REPLICAS}/g" deploy.yaml
+          sed "/image:/ s/$/:$newTagName/" deploy.yaml > deployment.yaml
+          cat deployment.yaml
+          cd ..
+          # fi
   # facadeapi-prod:
   #   if: ${{ github.event.inputs.environment == 'Prod' }}  
   #   name: 'Deploy to Production'
