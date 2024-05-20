@@ -85,6 +85,7 @@ jobs:
           sed -i -e "s/ES_INTERNAL_MASTER/${ES_INTERNAL_MASTER}/g" deploy.yaml
           for i in `cat repo.txt`
           do
+            echo $i
             if [ $i == 'employees' ]; then
               sed -i -e "s/MIN_REPLICAS/${EMP_MIN_REPLICAS}/g" deploy.yaml
               sed -i -e "s/MAX_REPLICAS/${EMP_MAX_REPLICAS}/g" deploy.yaml
