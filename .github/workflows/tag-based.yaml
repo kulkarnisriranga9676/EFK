@@ -59,7 +59,6 @@ jobs:
 
       - name: Repo reading
         run: |
-          cd ..
           pwd
           ls
           cd apis
