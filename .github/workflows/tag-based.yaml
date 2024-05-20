@@ -33,6 +33,7 @@ on:
 
 env:
   NAMESPACE: hive
+  HOME_PATH: /home/ubuntu/actions-runner/_work/facadeapi/facadeapi/
   deploy_version: ${{ github.event.inputs.version }}
   dTag: ${{ github.event.inputs.ImageTag }}
   buildnumber: ${{ github.event.inputs.ImageTag }}
@@ -60,6 +61,7 @@ jobs:
         run: |
           pwd
           ls
+          
           cd apis
           ls  >> $HOME_PATH/repo.txt
           cat $HOME_PATH/repo.txt
