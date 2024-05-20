@@ -60,8 +60,8 @@ jobs:
         shell: bash
     steps:
       - name: git repo Checkout
-        uses: actions/checrunkout@v2
-        
+        uses: actions/checkout@v2
+
       - name: Repo reading
         run: |
           cd apis
