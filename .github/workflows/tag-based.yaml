@@ -72,7 +72,7 @@ jobs:
           sleep 5
       - name: Reading for loop
         run: |
-          for i in `cat $HOME_PATH/repo1.txt`
+          for i in `cat $HOME_PATH/repo.txt`
             do
               tagName="${dTag}"
               newTagName="${tagName/qa/prod}" # QA image will be promoted to Prod.
