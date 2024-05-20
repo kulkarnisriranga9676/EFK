@@ -65,8 +65,8 @@ jobs:
       run:
         shell: bash
     steps:
-      - name: git repo Checkout
-        uses: actions/checkout@v2
+      # - name: git repo Checkout
+      #   uses: actions/checkout@v2
         
       - name: Retrieve Repo names based on Version
         run: |
