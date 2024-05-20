@@ -95,7 +95,7 @@ jobs:
           count="$((i-1))"
           for ((j=1; j<=count; j++)); do
             pro=lhh$j
-            if [ "$pro" == "employees" ]; then
+            if [ "${!pro}" == "employees" ]; then
               sed -i -e "s/minReplicas\: 2/minReplicas\: 3/g" deployment.yaml
               sed -i -e "s/minReplicas\: 5/minReplicas\: 20/g" deployment.yaml
             else
