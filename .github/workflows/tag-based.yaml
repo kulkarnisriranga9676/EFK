@@ -74,8 +74,8 @@ jobs:
 
               imageName=`echo $i  | tr '[A-Z]' '[a-z]'`
               if [ $imageName == 'employees' ]; then
-                export MIN_REPLICAS: 3
-                export MAX_REPLICAS:20
+                export MIN_REPLICAS=3
+                export MAX_REPLICAS=20
               fi
               echo $imageName
               cd ..
