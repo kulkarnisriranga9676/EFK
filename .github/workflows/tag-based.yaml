@@ -51,8 +51,7 @@ jobs:
       ES_INTERNAL_MASTER: 1.0.2.3
       MIN_REPLICAS: 2
       MAX_REPLICAS: 5
-      EMP_MIN_REPLICAS: 3
-      EMP_MAX_REPLICAS: 20
+     
     defaults:
       run:
         shell: bash
