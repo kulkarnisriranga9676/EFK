@@ -64,6 +64,7 @@ jobs:
 
       - name: Repo reading
         run: |
+          pwd
           cd apis
           ls -d */ | tr -d '//' | sed  '/target/d' >> $HOME_PATH/repo.txt
           cat $HOME_PATH/repo.txt
