@@ -33,7 +33,7 @@ on:
 
 env:
   NAMESPACE: hive
-  HOME_PATH: /home/ubuntu/actions-runner/_work/facadeapi/facadeapi
+  HOME_PATH: /home/ubuntu/actions-runner/_work/facadeapi/facadeapi/deployment
   deploy_version: ${{ github.event.inputs.version }}
   dTag: ${{ github.event.inputs.ImageTag }}
   buildnumber: ${{ github.event.inputs.ImageTag }}
@@ -59,10 +59,11 @@ jobs:
 
       - name: Repo reading
         run: |
+          cd ..
           pwd
           ls
           cd apis
-          ls  apis/ >> $HOME_PATH/repo.txt
+          ls  >> $HOME_PATH/repo.txt
           cat $HOME_PATH/repo.txt
           sleep 5
       # - name: Reading for loop
