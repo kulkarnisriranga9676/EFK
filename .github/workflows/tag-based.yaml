@@ -75,8 +75,8 @@ jobs:
 
               imageName=`echo $i  | tr '[A-Z]' '[a-z]'`
               if [ $imageName == 'employees' ]; then
-                echo "export MIN_REPLICAS=3" >> $GITHUB_ENV
-                echo "export MAX_REPLICAS=20" >> $GITHUB_ENV
+                echo "::set-env name=MIN_REPLICAS::3"
+                echo "::set-env name=MAX_REPLICAS::20"
               fi
               echo $imageName
             done
