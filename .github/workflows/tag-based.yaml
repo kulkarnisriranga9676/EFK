@@ -61,9 +61,8 @@ jobs:
         run: |
           pwd
           ls
-          
           cd apis
-          ls  >> $HOME_PATH/repo.txt
+          ls  apis/ >> $HOME_PATH/repo.txt
           cat $HOME_PATH/repo.txt
           sleep 5
       # - name: Reading for loop
