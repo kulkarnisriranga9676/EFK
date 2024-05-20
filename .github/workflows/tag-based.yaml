@@ -43,7 +43,7 @@ env:
   SERVICEACCOUNT: skyhive
 
 jobs:
-  facade-prod:
+  facadeapi-prod:
     if: ${{ github.event.inputs.environment == 'Prod' }}
     environment: production
     name: 'Deploy to Production'
