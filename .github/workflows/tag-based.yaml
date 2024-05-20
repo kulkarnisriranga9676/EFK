@@ -88,11 +88,10 @@ jobs:
           sed -i -e "s/MIN_REPLICAS/${MIN_REPLICAS}/g" deploy.yaml
           sed -i -e "s/MAX_REPLICAS/${MAX_REPLICAS}/g" deploy.yaml
           sed "/image:/ s/$/:$newTagName/" deploy.yaml > deployment.yaml
-          cd ..
           i=1
           while IFS= read -r line; do
               declare lhh$((i++))="$line"
-          done <repo.txt
+          done < repo.txt
           count="$((i-1))"
           for ((j=1; j<=count; j++)); do
             pro=lhh$j
