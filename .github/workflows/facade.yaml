@@ -51,7 +51,7 @@ jobs:
     env:
       spring_profiles_active: qa
       CERT_ARN: "arn:aws:acm:ca-central-1:027795646707:certificate/c32eb085-5138-47ed-b87f-7a577949fe66"
-      EKS_CLUSTERNAME: paas-eks-qa
+      EKS_CLUSTERNAME: adasd
       KUBECONFIG: /root/.kube/config
       HOME_PATH: /home/ubuntu/actions-runner/_work/facadeapi/facadeapi/deployment
       API_TOKEN: ${{ secrets.API_TOKEN }}
