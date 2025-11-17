@@ -228,7 +228,7 @@ jobs:
       # spring_profiles_active: stage
       spring_profiles_active: ${{ github.event.inputs.version == 'pwc' && 'pwcuat' || 'stage'}}
       CERT_ARN: arn:aws:acm:ca-central-1:596298976885:certificate/3c4256a1-973f-4af1-8fed-24b845a2f755
-      EKS_CLUSTERNAME: paas-lhh-dev
+      EKS_CLUSTERNAME: dev-xyz
       API_TOKEN: ${{ secrets.API_TOKEN }}
       PASS_TOKEN: ${{ secrets.PASS_TOKEN }}
       AWS_ACCOUNT_ID: 596298976885
