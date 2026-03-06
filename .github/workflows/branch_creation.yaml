@@ -1,4 +1,4 @@
-name: Branch Creation 
+name: Create Branch From Selected Ref
 
 on:
   workflow_dispatch:
@@ -81,17 +81,8 @@ jobs:
             local source_sha=""
             if [[ "$SOURCE_REF_TYPE" == "branch" ]]; then
               if ! source_sha=$(gh api "repos/$ORG/$repo/git/ref/heads/$SOURCE_REF_NAME" --jq '.object.sha' 2>/dev/null); then
-                echo "WARNING: $repo has no branch '$SOURCE_REF_NAME', trying default branch instead..."
-                local default_branch
-                if ! default_branch=$(gh api "repos/$ORG/$repo" --jq '.default_branch' 2>/dev/null); then
-                  echo "ERROR: Failed to get default branch for $repo"
-                  return 2
-                fi
-                if ! source_sha=$(gh api "repos/$ORG/$repo/git/ref/heads/$default_branch" --jq '.object.sha' 2>/dev/null); then
-                  echo "ERROR: $repo has no branch '$SOURCE_REF_NAME' or default branch '$default_branch'"
-                  return 2
-                fi
-                echo "Using default branch '$default_branch' for $repo"
+                echo "ERROR: $repo does not have the selected branch '$SOURCE_REF_NAME'"
+                return 2
               fi
             elif [[ "$SOURCE_REF_TYPE" == "tag" ]]; then
               if ! source_sha=$(gh api "repos/$ORG/$repo/commits/$SOURCE_REF_NAME" --jq '.sha' 2>/dev/null); then
