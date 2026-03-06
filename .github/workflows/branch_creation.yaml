@@ -98,13 +98,13 @@ jobs:
           source_sha=""
           if [[ "$SOURCE_REF_TYPE" == "branch" ]]; then
             if ! source_sha=$(gh api "repos/$ORG/$REPO/git/ref/heads/$SOURCE_REF_NAME" --jq '.object.sha' 2>/dev/null); then
-              echo "::warning::SKIP: $REPO does not have the selected branch '$SOURCE_REF_NAME'"
-              exit 0
+              echo "::error::SKIP: $REPO does not have the selected branch '$SOURCE_REF_NAME'"
+              exit 1
             fi
           elif [[ "$SOURCE_REF_TYPE" == "tag" ]]; then
             if ! source_sha=$(gh api "repos/$ORG/$REPO/commits/$SOURCE_REF_NAME" --jq '.sha' 2>/dev/null); then
-              echo "::warning::SKIP: $REPO has no tag '$SOURCE_REF_NAME'"
-              exit 0
+              echo "::error::SKIP: $REPO has no tag '$SOURCE_REF_NAME'"
+              exit 1
             fi
           else
             echo "::error::Unsupported ref type '$SOURCE_REF_TYPE' (expected 'branch' or 'tag')"
