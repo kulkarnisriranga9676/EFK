@@ -17,8 +17,11 @@ permissions:
   contents: read
 
 jobs:
-  create-branch:
+  setup:
     runs-on: ubuntu-latest
+    outputs:
+      repositories: ${{ steps.read-repos.outputs.repositories }}
+      new_branch: ${{ steps.validate.outputs.new_branch }}
     steps:
       - name: Checkout selected ref
         uses: actions/checkout@v4
@@ -27,26 +30,16 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Install GitHub CLI
-        run: sudo apt update && sudo apt install gh -y
-
-      - name: Create branch across repositories
-        env:
-          GH_TOKEN: ${{ secrets.ORG_PAT }}
-          INPUT_BRANCH: ${{ github.event.inputs.new_branch_name }}
-          DRY_RUN: ${{ github.event.inputs.dry_run }}
-          ORG: kulkarnisriranga9676
-          SOURCE_REF: ${{ github.ref }}
-          SOURCE_REF_NAME: ${{ github.ref_name }}
-          SOURCE_REF_TYPE: ${{ github.ref_type }}
+      - name: Validate branch name
+        id: validate
         run: |
           set -euo pipefail
 
-          NEW_BRANCH="$INPUT_BRANCH"
+          NEW_BRANCH="${{ github.event.inputs.new_branch_name }}"
           NEW_BRANCH="${NEW_BRANCH#refs/heads/}"
 
           if [[ "$NEW_BRANCH" == refs/* ]]; then
-            echo "ERROR: Provide a branch name like 'patch/x.y.z' or 'release/x.y.z' (not a full ref like '$INPUT_BRANCH')."
+            echo "ERROR: Provide a branch name like 'patch/x.y.z' or 'release/x.y.z' (not a full ref like '${{ github.event.inputs.new_branch_name }}')."
             exit 1
           fi
 
@@ -55,8 +48,14 @@ jobs:
             exit 1
           fi
 
-          echo "Source selected in UI: $SOURCE_REF_TYPE '$SOURCE_REF_NAME' ($SOURCE_REF)"
-          echo "Creating new branch across repos: $NEW_BRANCH"
+          echo "Source selected in UI: ${{ github.ref_type }} '${{ github.ref_name }}' (${{ github.ref }})"
+          echo "New branch to create: $NEW_BRANCH"
+          echo "new_branch=$NEW_BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Read repositories
+        id: read-repos
+        run: |
+          set -euo pipefail
 
           REPOS_FILE=".github/workflows/repositories.csv"
 
@@ -65,63 +64,63 @@ jobs:
             exit 1
           fi
 
-          failures=0
+          repos=$(grep -v '^[[:space:]]*$' "$REPOS_FILE" | tr -d '\r' | jq -R . | jq -sc .)
+          echo "repositories=$repos" >> "$GITHUB_OUTPUT"
 
-          process_repo() {
-            local repo="$1"
-            [[ -z "$repo" ]] && return 0
+  create-branch:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo: ${{ fromJson(needs.setup.outputs.repositories) }}
+      fail-fast: false
+    name: "${{ matrix.repo }}"
+    env:
+      GH_TOKEN: ${{ secrets.ORG_PAT }}
+      NEW_BRANCH: ${{ needs.setup.outputs.new_branch }}
+      DRY_RUN: ${{ github.event.inputs.dry_run }}
+      ORG: kulkarnisriranga9676
+      REPO: ${{ matrix.repo }}
+      SOURCE_REF_NAME: ${{ github.ref_name }}
+      SOURCE_REF_TYPE: ${{ github.ref_type }}
+    steps:
+      - name: Create branch
+        run: |
+          set -euo pipefail
 
-            echo "Processing $repo..."
+          echo "Processing $REPO..."
 
-            if gh api "repos/$ORG/$repo/git/ref/heads/$NEW_BRANCH" > /dev/null 2>&1; then
-              echo "Branch already exists in $repo"
-              return 0
-            fi
-
-            local source_sha=""
-            if [[ "$SOURCE_REF_TYPE" == "branch" ]]; then
-              if ! source_sha=$(gh api "repos/$ORG/$repo/git/ref/heads/$SOURCE_REF_NAME" --jq '.object.sha' 2>/dev/null); then
-                echo "SKIP: $repo does not have the selected branch '$SOURCE_REF_NAME'"
-                return 0
-              fi
-            elif [[ "$SOURCE_REF_TYPE" == "tag" ]]; then
-              if ! source_sha=$(gh api "repos/$ORG/$repo/commits/$SOURCE_REF_NAME" --jq '.sha' 2>/dev/null); then
-                echo "SKIP: $repo has no tag '$SOURCE_REF_NAME'"
-                return 0
-              fi
-            else
-              echo "ERROR: Unsupported ref type '$SOURCE_REF_TYPE' (expected 'branch' or 'tag')"
-              return 2
-            fi
-
-            if [[ "$DRY_RUN" == "true" ]]; then
-              echo "DRY RUN: Would create '$NEW_BRANCH' in $repo from $SOURCE_REF_TYPE '$SOURCE_REF_NAME' ($source_sha)"
-              return 0
-            fi
-
-            if ! gh api "repos/$ORG/$repo/git/refs" \
-              -f ref="refs/heads/$NEW_BRANCH" \
-              -f sha="$source_sha" >/dev/null; then
-              echo "ERROR: Failed to create '$NEW_BRANCH' in $repo"
-              return 2
-            fi
-
-            echo "Created '$NEW_BRANCH' in $repo"
-            return 0
-          }
-
-          while IFS= read -r repo; do
-            repo="${repo%%$'\r'}"
-            [[ -z "$repo" ]] && continue
-
-            if ! process_repo "$repo"; then
-              failures=$((failures + 1))
-            fi
-          done < "$REPOS_FILE"
-
-          if [[ "$failures" -gt 0 ]]; then
-            echo "Completed with $failures failure(s). See logs above."
+          if gh api "repos/$ORG/$REPO/git/ref/heads/$NEW_BRANCH" > /dev/null 2>&1; then
+            echo "::error::Branch '$NEW_BRANCH' already exists in $REPO"
             exit 1
           fi
 
-          echo "Completed branch creation across all repositories."
+          source_sha=""
+          if [[ "$SOURCE_REF_TYPE" == "branch" ]]; then
+            if ! source_sha=$(gh api "repos/$ORG/$REPO/git/ref/heads/$SOURCE_REF_NAME" --jq '.object.sha' 2>/dev/null); then
+              echo "::warning::SKIP: $REPO does not have the selected branch '$SOURCE_REF_NAME'"
+              exit 0
+            fi
+          elif [[ "$SOURCE_REF_TYPE" == "tag" ]]; then
+            if ! source_sha=$(gh api "repos/$ORG/$REPO/commits/$SOURCE_REF_NAME" --jq '.sha' 2>/dev/null); then
+              echo "::warning::SKIP: $REPO has no tag '$SOURCE_REF_NAME'"
+              exit 0
+            fi
+          else
+            echo "::error::Unsupported ref type '$SOURCE_REF_TYPE' (expected 'branch' or 'tag')"
+            exit 1
+          fi
+
+          if [[ "$DRY_RUN" == "true" ]]; then
+            echo "DRY RUN: Would create '$NEW_BRANCH' in $REPO from $SOURCE_REF_TYPE '$SOURCE_REF_NAME' ($source_sha)"
+            exit 0
+          fi
+
+          if ! gh api "repos/$ORG/$REPO/git/refs" \
+            -f ref="refs/heads/$NEW_BRANCH" \
+            -f sha="$source_sha" >/dev/null; then
+            echo "::error::Failed to create '$NEW_BRANCH' in $REPO"
+            exit 1
+          fi
+
+          echo "Created '$NEW_BRANCH' in $REPO"
