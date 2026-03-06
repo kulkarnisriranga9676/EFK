@@ -1,4 +1,4 @@
-name: Create Branch From Selected Ref
+name: Branch Creation
 
 on:
   workflow_dispatch:
@@ -81,13 +81,13 @@ jobs:
             local source_sha=""
             if [[ "$SOURCE_REF_TYPE" == "branch" ]]; then
               if ! source_sha=$(gh api "repos/$ORG/$repo/git/ref/heads/$SOURCE_REF_NAME" --jq '.object.sha' 2>/dev/null); then
-                echo "ERROR: $repo does not have the selected branch '$SOURCE_REF_NAME'"
-                return 2
+                echo "SKIP: $repo does not have the selected branch '$SOURCE_REF_NAME'"
+                return 0
               fi
             elif [[ "$SOURCE_REF_TYPE" == "tag" ]]; then
               if ! source_sha=$(gh api "repos/$ORG/$repo/commits/$SOURCE_REF_NAME" --jq '.sha' 2>/dev/null); then
-                echo "ERROR: $repo has no tag '$SOURCE_REF_NAME'"
-                return 2
+                echo "SKIP: $repo has no tag '$SOURCE_REF_NAME'"
+                return 0
               fi
             else
               echo "ERROR: Unsupported ref type '$SOURCE_REF_TYPE' (expected 'branch' or 'tag')"
