@@ -1,4 +1,4 @@
-name: Branch Creation Workflow
+name: Create Branch From Selected Ref
 
 on:
   workflow_dispatch:
@@ -35,7 +35,7 @@ jobs:
           GH_TOKEN: ${{ secrets.ORG_PAT }}
           INPUT_BRANCH: ${{ github.event.inputs.new_branch_name }}
           DRY_RUN: ${{ github.event.inputs.dry_run }}
-          ORG: kulkarnisriranga9676
+          ORG: SkyHiveInfra
           SOURCE_REF: ${{ github.ref }}
           SOURCE_REF_NAME: ${{ github.ref_name }}
           SOURCE_REF_TYPE: ${{ github.ref_type }}
@@ -99,9 +99,12 @@ jobs:
               return 0
             fi
 
-            gh api "repos/$ORG/$repo/git/refs" \
+            if ! gh api "repos/$ORG/$repo/git/refs" \
               -f ref="refs/heads/$NEW_BRANCH" \
-              -f sha="$source_sha" >/dev/null
+              -f sha="$source_sha" >/dev/null; then
+              echo "ERROR: Failed to create '$NEW_BRANCH' in $repo"
+              return 2
+            fi
 
             echo "Created '$NEW_BRANCH' in $repo"
             return 0
