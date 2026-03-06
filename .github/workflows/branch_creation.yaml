@@ -1,0 +1,124 @@
+name: Create Branch From Selected Ref
+
+on:
+  workflow_dispatch:
+    inputs:
+      new_branch_name:
+        description: "New branch name to create (e.g., patch/2026-jan-4)"
+        required: true
+        type: string
+      dry_run:
+        description: "Run in dry mode (true/false)"
+        required: false
+        default: "false"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  create-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout selected ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Install GitHub CLI
+        run: sudo apt update && sudo apt install gh -y
+
+      - name: Create branch across repositories
+        env:
+          GH_TOKEN: ${{ secrets.ORG_PAT }}
+          INPUT_BRANCH: ${{ github.event.inputs.new_branch_name }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+          ORG: kulkarnisriranga9676
+          SOURCE_REF: ${{ github.ref }}
+          SOURCE_REF_NAME: ${{ github.ref_name }}
+          SOURCE_REF_TYPE: ${{ github.ref_type }}
+        run: |
+          set -euo pipefail
+
+          NEW_BRANCH="$INPUT_BRANCH"
+          NEW_BRANCH="${NEW_BRANCH#refs/heads/}"
+
+          if [[ "$NEW_BRANCH" == refs/* ]]; then
+            echo "ERROR: Provide a branch name like 'patch/x.y.z' or 'release/x.y.z' (not a full ref like '$INPUT_BRANCH')."
+            exit 1
+          fi
+
+          if ! git check-ref-format --branch "$NEW_BRANCH" >/dev/null 2>&1; then
+            echo "ERROR: '$NEW_BRANCH' is not a valid branch name."
+            exit 1
+          fi
+
+          echo "Source selected in UI: $SOURCE_REF_TYPE '$SOURCE_REF_NAME' ($SOURCE_REF)"
+          echo "Creating new branch across repos: $NEW_BRANCH"
+
+          REPOS_FILE=".github/workflows/repositories.csv"
+
+          if [[ ! -f "$REPOS_FILE" ]]; then
+            echo "ERROR: Repo list file not found: $REPOS_FILE"
+            exit 1
+          fi
+
+          failures=0
+
+          process_repo() {
+            local repo="$1"
+            [[ -z "$repo" ]] && return 0
+
+            echo "Processing $repo..."
+
+            if gh api "repos/$ORG/$repo/git/ref/heads/$NEW_BRANCH" > /dev/null 2>&1; then
+              echo "Branch already exists in $repo"
+              return 0
+            fi
+
+            local source_sha=""
+            if [[ "$SOURCE_REF_TYPE" == "branch" ]]; then
+              if ! source_sha=$(gh api "repos/$ORG/$repo/git/ref/heads/$SOURCE_REF_NAME" --jq '.object.sha' 2>/dev/null); then
+                echo "ERROR: $repo has no branch '$SOURCE_REF_NAME'"
+                return 2
+              fi
+            elif [[ "$SOURCE_REF_TYPE" == "tag" ]]; then
+              if ! source_sha=$(gh api "repos/$ORG/$repo/commits/$SOURCE_REF_NAME" --jq '.sha' 2>/dev/null); then
+                echo "ERROR: $repo has no tag '$SOURCE_REF_NAME'"
+                return 2
+              fi
+            else
+              echo "ERROR: Unsupported ref type '$SOURCE_REF_TYPE' (expected 'branch' or 'tag')"
+              return 2
+            fi
+
+            if [[ "$DRY_RUN" == "true" ]]; then
+              echo "DRY RUN: Would create '$NEW_BRANCH' in $repo from $SOURCE_REF_TYPE '$SOURCE_REF_NAME' ($source_sha)"
+              return 0
+            fi
+
+            gh api "repos/$ORG/$repo/git/refs" \
+              -f ref="refs/heads/$NEW_BRANCH" \
+              -f sha="$source_sha" >/dev/null
+
+            echo "Created '$NEW_BRANCH' in $repo"
+            return 0
+          }
+
+          while IFS= read -r repo; do
+            repo="${repo%%$'\r'}"
+            [[ -z "$repo" ]] && continue
+
+            if ! process_repo "$repo"; then
+              failures=$((failures + 1))
+            fi
+          done < "$REPOS_FILE"
+
+          if [[ "$failures" -gt 0 ]]; then
+            echo "Completed with $failures failure(s). See logs above."
+            exit 1
+          fi
+
+          echo "Completed branch creation across all repositories."
