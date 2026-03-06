@@ -1,4 +1,4 @@
-name: Create Branch From Selected Ref
+name: Branch Creation Workflow
 
 on:
   workflow_dispatch:
