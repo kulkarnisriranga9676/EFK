@@ -1,4 +1,6 @@
-name: Create Branch or Tag From Source Branch or Tag
+name: Branch / Tag Creation Pipeline
+run-name: 'Creating ${{ github.event.inputs.new_ref_type }}: ${{ github.event.inputs.new_ref_name }} from ${{ github.event.inputs.source_ref }}'
+
 
 on:
   workflow_dispatch:
