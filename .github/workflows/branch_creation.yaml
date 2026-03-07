@@ -3,6 +3,10 @@ name: Branch Creation
 on:
   workflow_dispatch:
     inputs:
+      source_ref:
+        description: "Source branch or tag to create the new branch from (e.g., main, v1.2.3)"
+        required: true
+        type: string
       new_branch_name:
         description: "New branch name to create (e.g., patch/2026-jan-4)"
         required: true
@@ -22,15 +26,16 @@ jobs:
     outputs:
       repositories: ${{ steps.read-repos.outputs.repositories }}
       new_branch: ${{ steps.validate.outputs.new_branch }}
+      source_ref: ${{ steps.validate.outputs.source_ref }}
+      source_ref_type: ${{ steps.validate.outputs.source_ref_type }}
     steps:
-      - name: Checkout selected ref
+      - name: Checkout workflow branch (to read repo list)
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Validate branch name
+      - name: Validate inputs and resolve source ref
         id: validate
         run: |
           set -euo pipefail
@@ -48,9 +53,23 @@ jobs:
             exit 1
           fi
 
-          echo "Source selected in UI: ${{ github.ref_type }} '${{ github.ref_name }}' (${{ github.ref }})"
+          SOURCE_REF="${{ github.event.inputs.source_ref }}"
+
+          # Determine if source_ref is a tag or branch
+          if git rev-parse "refs/tags/$SOURCE_REF" >/dev/null 2>&1; then
+            SOURCE_REF_TYPE="tag"
+          elif git rev-parse "refs/remotes/origin/$SOURCE_REF" >/dev/null 2>&1; then
+            SOURCE_REF_TYPE="branch"
+          else
+            echo "ERROR: '$SOURCE_REF' not found as a branch or tag in this repository."
+            exit 1
+          fi
+
+          echo "Source ref: $SOURCE_REF_TYPE '$SOURCE_REF'"
           echo "New branch to create: $NEW_BRANCH"
           echo "new_branch=$NEW_BRANCH" >> "$GITHUB_OUTPUT"
+          echo "source_ref=$SOURCE_REF" >> "$GITHUB_OUTPUT"
+          echo "source_ref_type=$SOURCE_REF_TYPE" >> "$GITHUB_OUTPUT"
 
       - name: Read repositories
         id: read-repos
@@ -81,8 +100,8 @@ jobs:
       DRY_RUN: ${{ github.event.inputs.dry_run }}
       ORG: kulkarnisriranga9676
       REPO: ${{ matrix.repo }}
-      SOURCE_REF_NAME: ${{ github.ref_name }}
-      SOURCE_REF_TYPE: ${{ github.ref_type }}
+      SOURCE_REF_NAME: ${{ needs.setup.outputs.source_ref }}
+      SOURCE_REF_TYPE: ${{ needs.setup.outputs.source_ref_type }}
     steps:
       - name: Create branch
         run: |
