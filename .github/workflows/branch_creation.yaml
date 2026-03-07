@@ -1,14 +1,22 @@
-name: Branch Creation
+name: Create Branch or Tag From Source Branch or Tag
 
 on:
   workflow_dispatch:
     inputs:
       source_ref:
-        description: "Source branch or tag to create the new branch from (e.g., main, v1.2.3)"
+        description: "Source branch or tag to create from (e.g., main, v1.2.3)"
         required: true
         type: string
-      new_branch_name:
-        description: "New branch name to create (e.g., patch/2026-jan-4)"
+      new_ref_type:
+        description: "What to create from the source ref"
+        required: true
+        type: choice
+        default: "branch"
+        options:
+          - branch
+          - tag
+      new_ref_name:
+        description: "New branch or tag name (e.g., patch/2026-jan-4 or v1.2.4)"
         required: true
         type: string
       dry_run:
@@ -25,7 +33,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       repositories: ${{ steps.read-repos.outputs.repositories }}
-      new_branch: ${{ steps.validate.outputs.new_branch }}
+      new_ref: ${{ steps.validate.outputs.new_ref }}
+      new_ref_type: ${{ steps.validate.outputs.new_ref_type }}
       source_ref: ${{ steps.validate.outputs.source_ref }}
       source_ref_type: ${{ steps.validate.outputs.source_ref_type }}
     steps:
@@ -40,16 +49,21 @@ jobs:
         run: |
           set -euo pipefail
 
-          NEW_BRANCH="${{ github.event.inputs.new_branch_name }}"
-          NEW_BRANCH="${NEW_BRANCH#refs/heads/}"
+          NEW_REF="${{ github.event.inputs.new_ref_name }}"
+          NEW_REF_TYPE="${{ github.event.inputs.new_ref_type }}"
 
-          if [[ "$NEW_BRANCH" == refs/* ]]; then
-            echo "ERROR: Provide a branch name like 'patch/x.y.z' or 'release/x.y.z' (not a full ref like '${{ github.event.inputs.new_branch_name }}')."
+          # Strip refs/heads/ prefix if accidentally provided for a branch
+          if [[ "$NEW_REF_TYPE" == "branch" ]]; then
+            NEW_REF="${NEW_REF#refs/heads/}"
+          fi
+
+          if [[ "$NEW_REF" == refs/* ]]; then
+            echo "ERROR: Provide a plain name like 'patch/x.y.z' or 'v1.2.4' (not a full ref like '${{ github.event.inputs.new_ref_name }}')."
             exit 1
           fi
 
-          if ! git check-ref-format --branch "$NEW_BRANCH" >/dev/null 2>&1; then
-            echo "ERROR: '$NEW_BRANCH' is not a valid branch name."
+          if ! git check-ref-format --branch "$NEW_REF" >/dev/null 2>&1; then
+            echo "ERROR: '$NEW_REF' is not a valid ref name."
             exit 1
           fi
 
@@ -66,8 +80,9 @@ jobs:
           fi
 
           echo "Source ref: $SOURCE_REF_TYPE '$SOURCE_REF'"
-          echo "New branch to create: $NEW_BRANCH"
-          echo "new_branch=$NEW_BRANCH" >> "$GITHUB_OUTPUT"
+          echo "Will create $NEW_REF_TYPE: '$NEW_REF'"
+          echo "new_ref=$NEW_REF" >> "$GITHUB_OUTPUT"
+          echo "new_ref_type=$NEW_REF_TYPE" >> "$GITHUB_OUTPUT"
           echo "source_ref=$SOURCE_REF" >> "$GITHUB_OUTPUT"
           echo "source_ref_type=$SOURCE_REF_TYPE" >> "$GITHUB_OUTPUT"
 
@@ -86,7 +101,7 @@ jobs:
           repos=$(grep -v '^[[:space:]]*$' "$REPOS_FILE" | tr -d '\r' | jq -R . | jq -sc .)
           echo "repositories=$repos" >> "$GITHUB_OUTPUT"
 
-  create-branch:
+  create-ref:
     needs: setup
     runs-on: ubuntu-latest
     strategy:
@@ -96,21 +111,32 @@ jobs:
     name: "${{ matrix.repo }}"
     env:
       GH_TOKEN: ${{ secrets.ORG_PAT }}
-      NEW_BRANCH: ${{ needs.setup.outputs.new_branch }}
+      NEW_REF: ${{ needs.setup.outputs.new_ref }}
+      NEW_REF_TYPE: ${{ needs.setup.outputs.new_ref_type }}
       DRY_RUN: ${{ github.event.inputs.dry_run }}
       ORG: kulkarnisriranga9676
       REPO: ${{ matrix.repo }}
       SOURCE_REF_NAME: ${{ needs.setup.outputs.source_ref }}
       SOURCE_REF_TYPE: ${{ needs.setup.outputs.source_ref_type }}
     steps:
-      - name: Create branch
+      - name: Create branch or tag
         run: |
           set -euo pipefail
 
           echo "Processing $REPO..."
 
-          if gh api "repos/$ORG/$REPO/git/ref/heads/$NEW_BRANCH" > /dev/null 2>&1; then
-            echo "::error::Branch '$NEW_BRANCH' already exists in $REPO"
+          # Resolve the git ref path for the new ref
+          if [[ "$NEW_REF_TYPE" == "branch" ]]; then
+            NEW_GIT_REF="refs/heads/$NEW_REF"
+          elif [[ "$NEW_REF_TYPE" == "tag" ]]; then
+            NEW_GIT_REF="refs/tags/$NEW_REF"
+          else
+            echo "::error::Unsupported new_ref_type '$NEW_REF_TYPE' (expected 'branch' or 'tag')"
+            exit 1
+          fi
+
+          if gh api "repos/$ORG/$REPO/git/ref/${NEW_GIT_REF#refs/}" > /dev/null 2>&1; then
+            echo "::error::$NEW_REF_TYPE '$NEW_REF' already exists in $REPO"
             exit 1
           fi
 
@@ -131,15 +157,15 @@ jobs:
           fi
 
           if [[ "$DRY_RUN" == "true" ]]; then
-            echo "DRY RUN: Would create '$NEW_BRANCH' in $REPO from $SOURCE_REF_TYPE '$SOURCE_REF_NAME' ($source_sha)"
+            echo "DRY RUN: Would create $NEW_REF_TYPE '$NEW_REF' in $REPO from $SOURCE_REF_TYPE '$SOURCE_REF_NAME' ($source_sha)"
             exit 0
           fi
 
           if ! gh api "repos/$ORG/$REPO/git/refs" \
-            -f ref="refs/heads/$NEW_BRANCH" \
+            -f ref="$NEW_GIT_REF" \
             -f sha="$source_sha" >/dev/null; then
-            echo "::error::Failed to create '$NEW_BRANCH' in $REPO"
+            echo "::error::Failed to create $NEW_REF_TYPE '$NEW_REF' in $REPO"
             exit 1
           fi
 
-          echo "Created '$NEW_BRANCH' in $REPO"
+          echo "Created $NEW_REF_TYPE '$NEW_REF' in $REPO"
